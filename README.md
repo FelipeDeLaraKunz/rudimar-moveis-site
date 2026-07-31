@@ -176,10 +176,3 @@ Mais controle, um pouco mais de trabalho manual:
 Para quando o site crescer bastante: Elastic Beanstalk ou ECS para rodar o container, RDS
 para o Postgres gerenciado, e S3 para as fotos (em vez da pasta local de uploads). Não é
 necessário para começar — vale considerar mais pra frente se o negócio crescer.
-
-## Próximos passos possíveis
-
-- Filtro por categoria/cor no catálogo completo.
-- Login soável (recuperação de senha) para o admin.
-- Enviar as fotos para um serviço externo (ex: S3/Cloudinary) em vez da pasta local —
-  facilita hospedar em plataformas sem disco persistente.
