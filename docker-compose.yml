@@ -1,0 +1,41 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: loja_moveis
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    # sem "ports" aqui de proposito: so o servico "app" precisa alcancar o banco,
+    # pela rede interna do compose (db:5432) - nao precisa (nem deve) ficar exposto
+    # na porta do host/servidor, onde qualquer um na internet poderia tentar se conectar.
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    volumes:
+      - uploads_data:/app/uploads
+    environment:
+      DATABASE_URL: jdbc:postgresql://db:5432/loja_moveis
+      DATABASE_USERNAME: postgres
+      DATABASE_PASSWORD: postgres
+      ADMIN_USERNAME: ${ADMIN_USERNAME}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      N8N_WEBHOOK_URL: ${N8N_WEBHOOK_URL:-}
+      AUTOMACAO_API_KEY: ${AUTOMACAO_API_KEY:-}
+
+volumes:
+  db_data:
+  uploads_data:

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promoções - Admin Rudimar</title>
+    <link rel="icon" type="image/png" href="/uploads/icone.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Nunito:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="admin-shell">
+
+<div class="admin-topbar">
+    <div class="container">
+        <div class="brand">Rudimar Móveis - Admin</div>
+        <nav>
+            <a th:href="@{/admin/produtos}">Estoque</a>
+            <a th:href="@{/admin/promocoes}">Promoções</a>
+            <a th:href="@{/}">Ver site</a>
+            <form th:action="@{/admin/logout}" method="post" style="display: inline;">
+                <button type="submit" style="background:none;border:none;color:#E6DFD1;cursor:pointer;font-size:13.5px;margin-left:20px;">Sair</button>
+            </form>
+        </nav>
+    </div>
+</div>
+
+<div class="container admin-content">
+    <div class="admin-content-head">
+        <h1>Promoções</h1>
+        <a th:href="@{/admin/promocoes(novo=true)}" class="btn-admin">+ Nova promoção</a>
+    </div>
+
+    <dialog id="promocaoModal" class="modal-produto" th:data-abrir="${abrirModal}">
+        <div class="modal-produto-head">
+            <h2 th:text="${promocao.id != null ? 'Editar promoção' : 'Nova promoção'}"></h2>
+            <button type="button" class="modal-fechar" data-fechar-modal aria-label="Fechar">&times;</button>
+        </div>
+        <form th:action="@{/admin/promocoes}" th:object="${promocao}" method="post" enctype="multipart/form-data">
+            <input type="hidden" th:field="*{id}">
+            <div class="form-grid">
+                <div class="form-field">
+                    <label for="titulo">Título</label>
+                    <input type="text" id="titulo" th:field="*{titulo}" placeholder="Ex: Semana da Casa Nova">
+                    <span class="form-error" th:if="${#fields.hasErrors('titulo')}" th:errors="*{titulo}"></span>
+                </div>
+
+                <div class="form-field">
+                    <label for="percentualDesconto">Desconto (%)</label>
+                    <label class="filtro-check" style="padding: 0 0 6px;">
+                        <input type="checkbox" id="mostrarPercentual" th:checked="${promocao.percentualDesconto != null}">
+                        <span>Mostrar percentual de desconto (selo "-X%")</span>
+                    </label>
+                    <input type="number" min="1" max="100" id="percentualDesconto" th:field="*{percentualDesconto}"
+                           th:disabled="${promocao.percentualDesconto == null}" placeholder="Ex: 20">
+                    <span class="form-error" th:if="${#fields.hasErrors('percentualDesconto')}" th:errors="*{percentualDesconto}"></span>
+                    <span style="font-size: 11.5px; color: var(--ink-soft);">
+                        Opcional — deixe desmarcado quando o desconto variar de produto para produto. Quando marcado, é usado para sugerir o preço promocional e no selo "-X%".
+                    </span>
+                </div>
+
+                <div class="form-field">
+                    <label for="validaAte">Válida até</label>
+                    <input type="date" id="validaAte" th:field="*{validaAte}">
+                </div>
+
+                <div class="form-field">
+                    <label for="ativo">Visível no site</label>
+                    <select id="ativo" th:field="*{ativo}">
+                        <option value="true">Sim</option>
+                        <option value="false">Não</option>
+                    </select>
+                </div>
+
+                <div class="form-field full">
+                    <label>Produtos participantes e preço promocional</label>
+                    <input type="text" id="filtroProdutosPromo" class="promo-produtos-filtro" placeholder="Filtrar produtos pelo nome...">
+                    <div class="promo-produtos-lista" id="promoProdutosLista">
+                        <div class="promo-produto-linha" th:each="p : ${produtosDisponiveis}"
+                             th:attr="data-preco-original=${p.preco}, data-nome=${#strings.toLowerCase(p.nomeInterno)}">
+                            <label class="promo-produto-check">
+                                <input type="checkbox" class="promo-produto-toggle"
+                                       th:checked="${promocao.precosPromocionais.containsKey(p.id)}">
+                                <span th:text="${p.nomeInterno} + ' · R$ ' + ${#numbers.formatDecimal(p.preco, 1, 'POINT', 2, 'COMMA')}"></span>
+                            </label>
+                            <input type="number" step="0.01" min="0" class="promo-produto-preco"
+                                   th:name="'precosPromocionais[' + ${p.id} + ']'"
+                                   th:value="${promocao.precosPromocionais.get(p.id)}"
+                                   th:disabled="${!promocao.precosPromocionais.containsKey(p.id)}"
+                                   placeholder="Preço promocional">
+                        </div>
+                        <p th:if="${produtosDisponiveis.isEmpty()}" class="empty-msg" style="margin: 0;">
+                            Nenhum produto ativo com estoque disponível para incluir em promoções.
+                        </p>
+                    </div>
+                    <span style="font-size: 11.5px; color: var(--ink-soft);">
+                        Marque os produtos que entram na promoção e informe o preço promocional de cada um (o preço normal do produto não é alterado). Ao marcar, sugerimos um valor com base no desconto acima — edite livremente. Só aparecem produtos ativos e com estoque disponível.
+                    </span>
+                </div>
+
+                <div class="form-field full">
+                    <label for="descricao">Descrição</label>
+                    <textarea id="descricao" th:field="*{descricao}"></textarea>
+                </div>
+
+                <div class="form-field full" th:if="${promocao.id != null and promocao.imagemUrl != null}">
+                    <label>Foto atual</label>
+                    <img th:src="${promocao.imagemUrl}" alt="Foto da promoção" style="max-width: 200px; border-radius: 10px; border: 1px solid var(--border);">
+                </div>
+
+                <div class="form-field full">
+                    <label for="imagemUpload">
+                        <span th:text="${promocao.id != null and promocao.imagemUrl != null ? 'Trocar foto' : 'Foto da promoção (opcional)'}"></span>
+                    </label>
+                    <input type="file" id="imagemUpload" name="imagemUpload" accept="image/*">
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn-admin" th:text="${promocao.id != null ? 'Salvar alterações' : 'Cadastrar promoção'}"></button>
+                <a th:href="@{/admin/promocoes}" class="btn-admin-secondary">Cancelar</a>
+            </div>
+        </form>
+    </dialog>
+
+    <div class="admin-panel">
+        <h2>Promoções cadastradas</h2>
+
+        <div class="filtro-estoque" th:if="${!promocoes.isEmpty()}">
+            <input type="text" id="filtroBuscaPromo" placeholder="Buscar por título...">
+            <select id="filtroStatusPromo">
+                <option value="">Status: todos</option>
+                <option value="visivel">Visível</option>
+                <option value="expirada">Expirada</option>
+                <option value="oculta">Oculta</option>
+            </select>
+        </div>
+
+        <table class="admin-table" id="tabelaPromocoes" th:if="${!promocoes.isEmpty()}">
+            <thead>
+            <tr>
+                <th>Título</th>
+                <th>Desconto</th>
+                <th>Produtos</th>
+                <th>Válida até</th>
+                <th>Status</th>
+                <th>Ações</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="promo : ${promocoes}"
+                th:data-busca="${#strings.toLowerCase(promo.titulo)}"
+                th:data-status="${!promo.ativo ? 'oculta' : (promo.validaAgora ? 'visivel' : 'expirada')}">
+                <td th:text="${promo.titulo}"></td>
+                <td th:text="${promo.percentualDesconto != null ? promo.percentualDesconto + '%' : 'Variado'}"></td>
+                <td th:text="${nomesPorPromocao.get(promo.id) ?: '-'}"></td>
+                <td th:text="${promo.validaAte != null ? #temporals.format(promo.validaAte, 'dd/MM/yyyy') : '-'}"></td>
+                <td>
+                    <span th:if="${!promo.ativo}" class="badge-inativo">Oculta</span>
+                    <span th:if="${promo.ativo and !promo.validaAgora}" class="badge-inativo">Expirada</span>
+                    <span th:if="${promo.ativo and promo.validaAgora}" style="font-size:12px; color: var(--sage);">Visível</span>
+                </td>
+                <td class="row-actions">
+                    <a th:if="${promo.validaAgora}" th:href="@{/promocoes/{id}(id=${promo.id})}" target="_blank">Ver</a>
+                    <a th:href="@{/admin/promocoes/{id}/editar(id=${promo.id})}">Editar</a>
+                    <form th:action="@{/admin/promocoes/{id}/excluir(id=${promo.id})}" method="post" style="display:inline;"
+                          onsubmit="return confirm('Tem certeza que deseja excluir esta promoção?');">
+                        <button type="submit" class="excluir">Excluir</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <p id="filtroPromoVazio" class="empty-msg" style="display:none;">Nenhuma promoção encontrada.</p>
+        <p th:if="${promocoes.isEmpty()}" class="empty-msg">Nenhuma promoção cadastrada ainda.</p>
+    </div>
+</div>
+
+<script th:src="@{/js/busca-utils.js}" defer></script>
+<script th:src="@{/js/admin-promocoes.js}" defer></script>
+</body>
+</html>

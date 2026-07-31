@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo de produtos - Rudimar Móveis</title>
+    <link rel="icon" type="image/png" href="/uploads/icone.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header('produtos')}"></div>
+
+<section class="catalogo-topo">
+    <div class="container">
+        <p class="hero-eyebrow">Catálogo completo</p>
+        <h1>Todos os nossos produtos</h1>
+        <p class="lead" th:text="${totalProdutos} + ' produto(s) disponível(is) na loja.'"></p>
+    </div>
+</section>
+
+<section class="section" style="padding-top: 24px;">
+    <div class="container" th:unless="${totalProdutos == 0}">
+        <div class="catalogo-busca-destaque">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <circle cx="11" cy="11" r="7"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input id="catalogoSearch" type="search" placeholder="Buscar por nome ou descrição do produto..."
+                   aria-label="Buscar produtos" th:value="${buscaInicial}">
+        </div>
+    </div>
+
+    <div class="container catalogo-layout" th:unless="${totalProdutos == 0}">
+
+        <details class="catalogo-sidebar" open>
+            <summary>Filtros</summary>
+
+            <div class="filtro-grupo" th:if="${!categoriasDisponiveis.isEmpty()}">
+                <h3 class="filtro-titulo">Categoria</h3>
+                <label class="filtro-check" th:each="c : ${categoriasDisponiveis}">
+                    <input type="checkbox" name="filtroCategoria" th:value="${c}">
+                    <span th:text="${c}"></span>
+                </label>
+            </div>
+
+            <div class="filtro-grupo" th:if="${!marcasDisponiveis.isEmpty()}">
+                <h3 class="filtro-titulo">Marca</h3>
+                <label class="filtro-check" th:each="m : ${marcasDisponiveis}">
+                    <input type="checkbox" name="filtroMarca" th:value="${m}">
+                    <span th:text="${m}"></span>
+                </label>
+            </div>
+
+            <div class="filtro-grupo" th:if="${!coresDisponiveis.isEmpty()}">
+                <h3 class="filtro-titulo">Cor</h3>
+                <label class="filtro-check" th:each="c : ${coresDisponiveis}">
+                    <input type="checkbox" name="filtroCor" th:value="${c}">
+                    <span class="cor-dot" th:attr="data-cor=${c}"></span>
+                    <span th:text="${c}"></span>
+                </label>
+            </div>
+
+            <div class="filtro-grupo">
+                <h3 class="filtro-titulo">Preço (R$)</h3>
+                <div class="filtro-preco">
+                    <input type="number" id="precoMin" min="0" step="0.01" placeholder="Mín.">
+                    <span>até</span>
+                    <input type="number" id="precoMax" min="0" step="0.01" placeholder="Máx.">
+                </div>
+            </div>
+
+            <button type="button" id="limparFiltros" class="btn-admin-secondary limpar-filtros">Limpar filtros</button>
+        </details>
+
+        <div class="catalogo-resultados">
+            <p id="catalogoContagem" class="catalogo-contagem"></p>
+
+            <div id="catalogoNoResults" class="empty-msg" style="display: none;">
+                Nenhum produto encontrado com esses filtros.
+            </div>
+
+            <div class="produtos-grid" id="catalogoGrid">
+                <th:block th:each="produto : ${produtos}">
+                    <div th:replace="~{fragments/produto-card :: card(${produto}, ${promoPorProduto.get(produto.id)})}"></div>
+                </th:block>
+            </div>
+
+            <div class="catalogo-cta-whatsapp">
+                <p>Não encontrou o que procura?</p>
+                <a class="btn-whatsapp"
+                   th:href="@{https://wa.me/{numero}(numero=${lojaWhatsapp}, text='Olá! Não encontrei no site o que eu queria, vocês podem me ajudar?')}"
+                   target="_blank" rel="noopener">
+                    <svg viewBox="0 0 32 32" width="20" height="20" fill="currentColor" aria-hidden="true">
+                        <path d="M16 3C9.4 3 4 8.4 4 15c0 2.2.6 4.3 1.7 6.1L4 29l8.1-1.7C13.8 28 14.9 28 16 28c6.6 0 12-5.4 12-12S22.6 3 16 3zm0 22c-1.1 0-2.2-.2-3.2-.6l-.5-.2-4.8 1 1-4.7-.3-.5C7.2 18.9 6.7 17 6.7 15c0-5.1 4.2-9.3 9.3-9.3s9.3 4.2 9.3 9.3-4.2 9.7-9.3 9.7zm5.1-6.9c-.3-.1-1.6-.8-1.9-.9-.3-.1-.4-.1-.6.1-.2.3-.7.9-.8 1-.2.2-.3.2-.5.1-.3-.1-1.2-.4-2.2-1.4-.8-.7-1.4-1.6-1.5-1.9-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.1.2-.3.2-.4.1-.2 0-.3 0-.5-.1-.1-.6-1.5-.8-2-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.3-.9.9-.9 2.2s1 2.6 1.1 2.8c.1.2 2 3 4.7 4.2.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.6-.7 1.9-1.3.2-.6.2-1.1.2-1.3-.1-.1-.3-.2-.5-.3z"/>
+                    </svg>
+                    Chame a gente no WhatsApp e diga o que deseja!
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container" th:if="${totalProdutos == 0}">
+        <div class="empty-msg">Ainda não há produtos cadastrados.</div>
+    </div>
+</section>
+
+<script th:src="@{/js/header.js}" defer></script>
+<script th:src="@{/js/busca-utils.js}" defer></script>
+<script th:src="@{/js/catalogo.js}" defer></script>
+<script th:src="@{/js/promo-timer.js}" defer></script>
+
+<footer class="footer">
+    <div class="container" style="display: flex; justify-content: space-between; width: 100%;">
+        <span>&copy; 2026 Rudimar Móveis ltda. CNPJ: 22.459.828/0001-45. Todos os direitos reservados.</span>
+        <a th:href="@{/admin/login}">Área administrativa</a>
+    </div>
+</footer>
+
+</body>
+</html>

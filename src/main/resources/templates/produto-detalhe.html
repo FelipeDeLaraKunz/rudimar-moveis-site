@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${produto.nome} + ' - Rudimar Móveis'">Produto - Rudimar Móveis</title>
+    <link rel="icon" type="image/png" href="/uploads/icone.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header('produtos')}"></div>
+
+<section class="section" style="padding-top: 32px;">
+    <div class="container">
+
+        <a th:href="@{/produtos}" class="voltar-link">&larr; Voltar ao catálogo</a>
+
+        <div class="produto-detalhe">
+            <div class="produto-detalhe-galeria">
+                <div class="carousel">
+                    <div class="carousel-track" id="carouselTrack">
+                        <div class="carousel-slide" th:each="url : ${produto.imagens}">
+                            <img th:src="${url}" th:alt="${produto.nome}">
+                        </div>
+                        <div class="carousel-slide" th:if="${produto.imagens.isEmpty()}">
+                            <span class="carousel-sem-foto">Foto em breve</span>
+                        </div>
+                    </div>
+
+                    <button type="button" class="carousel-seta carousel-seta-prev" id="carouselPrev"
+                            th:if="${produto.imagens.size() > 1}" aria-label="Foto anterior">&#10094;</button>
+                    <button type="button" class="carousel-seta carousel-seta-next" id="carouselNext"
+                            th:if="${produto.imagens.size() > 1}" aria-label="Próxima foto">&#10095;</button>
+
+                    <div class="carousel-contador" th:if="${produto.imagens.size() > 1}">
+                        <span id="carouselContadorAtual">1</span>/<span th:text="${produto.imagens.size()}"></span>
+                    </div>
+                </div>
+
+                <div class="miniaturas" id="miniaturas" th:if="${produto.imagens.size() > 1}">
+                    <img th:each="url, iter : ${produto.imagens}" th:src="${url}" th:alt="${produto.nome}"
+                         th:class="${iter.index == 0} ? 'miniatura miniatura-ativa' : 'miniatura'"
+                         th:attr="data-index=${iter.index}">
+                </div>
+            </div>
+
+            <div class="produto-detalhe-info">
+                <p class="produto-categoria" th:if="${produto.categoria}" th:text="${produto.categoria}"></p>
+                <h1 th:text="${produto.nome}"></h1>
+
+                <div th:if="${promoInfo != null}" class="produto-detalhe-preco-promo">
+                    <span class="produto-tag-desconto" th:if="${promoInfo.percentualDesconto != null}" th:text="'-' + ${promoInfo.percentualDesconto} + '%'"></span>
+                    <span class="preco-original-grande" th:text="'R$ ' + ${#numbers.formatDecimal(produto.preco, 1, 'POINT', 2, 'COMMA')}"></span>
+                    <p class="produto-detalhe-preco produto-preco-destaque"
+                       th:text="'R$ ' + ${#numbers.formatDecimal(promoInfo.precoPromocional, 1, 'POINT', 2, 'COMMA')}"></p>
+                </div>
+                <div th:unless="${promoInfo != null}" class="produto-detalhe-preco-bloco">
+                    <p class="produto-detalhe-preco" th:text="'R$ ' + ${#numbers.formatDecimal(produto.preco, 1, 'POINT', 2, 'COMMA')} + ' à vista'"></p>
+                    <p class="produto-preco-parcela" th:if="${produto.precoCartao != null}"
+                       th:text="'ou 10x de R$ ' + ${#numbers.formatDecimal(produto.parcela10x, 1, 'POINT', 2, 'COMMA')} + ' sem juros no cartão'"></p>
+                </div>
+
+                <div th:if="${promoInfo != null and promoInfo.validaAteIso != null}" class="promo-timer promo-timer-detalhe" th:attr="data-fim=${promoInfo.validaAteIso}">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <circle cx="12" cy="12" r="9"/>
+                        <path d="M12 7v5l3 3"/>
+                    </svg>
+                    <span class="promo-timer-label">Oferta termina em</span>
+                    <span class="promo-timer-valor">--:--:--</span>
+                </div>
+
+                <p th:if="${produto.cor}" class="produto-detalhe-cor">Cor: <strong th:text="${produto.cor}"></strong></p>
+                <p class="produto-detalhe-descricao" th:if="${produto.descricao}" th:text="${produto.descricao}"></p>
+
+                <a class="btn-whatsapp"
+                   th:href="@{https://wa.me/{numero}(numero=${lojaWhatsapp}, text=${'Olá! O produto ' + produto.nome + ' ainda está disponível?'})}"
+                   target="_blank" rel="noopener">
+                    <svg viewBox="0 0 32 32" width="22" height="22" fill="currentColor" aria-hidden="true">
+                        <path d="M16 3C9.4 3 4 8.4 4 15c0 2.2.6 4.3 1.7 6.1L4 29l8.1-1.7C13.8 28 14.9 28 16 28c6.6 0 12-5.4 12-12S22.6 3 16 3zm0 22c-1.1 0-2.2-.2-3.2-.6l-.5-.2-4.8 1 1-4.7-.3-.5C7.2 18.9 6.7 17 6.7 15c0-5.1 4.2-9.3 9.3-9.3s9.3 4.2 9.3 9.3-4.2 9.7-9.3 9.7zm5.1-6.9c-.3-.1-1.6-.8-1.9-.9-.3-.1-.4-.1-.6.1-.2.3-.7.9-.8 1-.2.2-.3.2-.5.1-.3-.1-1.2-.4-2.2-1.4-.8-.7-1.4-1.6-1.5-1.9-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.1.2-.3.2-.4.1-.2 0-.3 0-.5-.1-.1-.6-1.5-.8-2-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.3-.9.9-.9 2.2s1 2.6 1.1 2.8c.1.2 2 3 4.7 4.2.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.6-.7 1.9-1.3.2-.6.2-1.1.2-1.3-.1-.1-.3-.2-.5-.3z"/>
+                    </svg>
+                    Falar no WhatsApp
+                </a>
+                <p class="whatsapp-hint">Você será direcionado ao WhatsApp com uma mensagem pronta — é só enviar.</p>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<div class="lightbox" id="lightbox">
+    <button type="button" class="lightbox-fechar" id="lightboxFechar" aria-label="Fechar">&times;</button>
+    <button type="button" class="lightbox-seta lightbox-seta-prev" id="lightboxPrev" aria-label="Foto anterior" hidden>&#10094;</button>
+    <img id="lightboxImg" src="" alt="">
+    <button type="button" class="lightbox-seta lightbox-seta-next" id="lightboxNext" aria-label="Próxima foto" hidden>&#10095;</button>
+</div>
+
+<script th:src="@{/js/header.js}" defer></script>
+<script th:src="@{/js/produto-carousel.js}" defer></script>
+<script th:src="@{/js/promo-timer.js}" defer></script>
+<script th:src="@{/js/produto-lightbox.js}" defer></script>
+
+<footer class="footer">
+    <div class="container" style="display: flex; justify-content: space-between; width: 100%;">
+        <span>&copy; 2026 Rudimar Móveis ltda. CNPJ: 22.459.828/0001-45. Todos os direitos reservados.</span>
+        <a th:href="@{/admin/login}">Área administrativa</a>
+    </div>
+</footer>
+
+</body>
+</html>

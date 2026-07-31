@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login administrativo - Rudimar Móveis</title>
+    <link rel="icon" type="image/png" href="/uploads/icone.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Nunito:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="login-wrapper">
+    <div class="login-box">
+        <h1>Area administrativa</h1>
+        <p class="subtitle">Entre com suas credenciais para editar produtos e promocoes.</p>
+
+        <div class="alert-error" th:if="${param.error}">
+            Usuario ou senha invalidos.
+        </div>
+
+        <form th:action="@{/admin/login}" method="post">
+            <div class="form-field">
+                <label for="username">Usuario</label>
+                <input type="text" id="username" name="username" required autofocus>
+            </div>
+            <div class="form-field">
+                <label for="password">Senha</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit" class="btn-admin" style="width: 100%; margin-top: 8px;">Entrar</button>
+        </form>
+
+        <p style="margin-top: 20px;">
+            <a th:href="@{/}" style="font-size: 13px; color: var(--ink-soft);">&larr; Voltar para o site</a>
+        </p>
+    </div>
+</div>
+</body>
+</html>

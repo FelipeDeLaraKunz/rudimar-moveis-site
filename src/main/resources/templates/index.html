@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rudimar Móveis</title>
+    <link rel="icon" type="image/png" href="/uploads/icone.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Nunito:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header('home')}"></div>
+
+<section class="hero">
+    <div class="container">
+        <div>
+            <p class="hero-eyebrow">Rudimar móveis</p>
+            <h1>Móveis que combinam com a sua casa.</h1>
+            <p class="lead">Cozinhas planejadas, guarda-roupas, sofás, colchões e muito mais, com condições especiais.
+                Venha conhecer a loja ou fale com a gente pelo WhatsApp.</p>
+            <div class="hero-actions">
+                <a href="#produtos" class="btn btn-primary">Ver produtos</a>
+                <a th:href="${lojaMapsUrl}" target="_blank" rel="noopener" class="btn btn-outline">Como chegar</a>
+            </div>
+        </div>
+        <div class="hero-image">
+            <img src="/uploads/loja.jpeg" alt="Imagem de capa da loja Rudimar Móveis">
+        </div>
+    </div>
+</section>
+
+<section class="section" id="promocoes">
+    <div class="container">
+        <div class="section-head">
+            <h2>Promoções deste mês</h2>
+            <p th:if="${!promocoes.isEmpty()}" th:text="${promocoes.size()} + ' oferta(s) ativa(s)'"></p>
+        </div>
+
+        <div th:if="${promocoes.isEmpty()}" class="empty-msg">
+            Nenhuma promoção ativa no momento. Volte em breve!
+        </div>
+
+        <div class="promo-bloco" th:each="promo : ${promocoes}">
+            <a class="promo-banner" th:href="@{/promocoes/{id}(id=${promo.id})}">
+                <img th:if="${promo.imagemUrl}" th:src="${promo.imagemUrl}" class="promo-banner-imagem" th:alt="${promo.titulo}">
+                <span class="promo-banner-desconto" th:if="${promo.percentualDesconto != null}" th:text="'-' + ${promo.percentualDesconto} + '%'"></span>
+                <div class="promo-banner-texto">
+                    <h3 th:text="${promo.titulo}"></h3>
+                    <p th:if="${promo.descricao}" th:text="${promo.descricao}"></p>
+                </div>
+                <div class="promo-timer promo-timer-banner" th:if="${promo.validaAteIso != null}" th:attr="data-fim=${promo.validaAteIso}">
+                    <span class="promo-timer-label">Termina em</span>
+                    <span class="promo-timer-valor">--:--:--</span>
+                </div>
+                <span class="promo-banner-link">Ver oferta completa &rarr;</span>
+            </a>
+
+            <div class="produtos-grid" th:unless="${produtosPorPromocao.get(promo.id).isEmpty()}">
+                <th:block th:each="produto, iter : ${produtosPorPromocao.get(promo.id)}" th:if="${iter.index < 4}">
+                    <div th:replace="~{fragments/produto-card :: card(${produto}, ${promoPorProduto.get(produto.id)})}"></div>
+                </th:block>
+            </div>
+            <p th:if="${produtosPorPromocao.get(promo.id).isEmpty()}" class="empty-msg promo-sem-produtos">
+                Nenhum produto ativo vinculado a esta promoção no momento.
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="section section-alt" id="produtos">
+    <div class="container">
+        <div class="section-head">
+            <h2>Nossos produtos</h2>
+            <p th:if="${totalProdutosAtivos > 0}" th:text="'Mostrando ' + ${produtos.size()} + ' de ' + ${totalProdutosAtivos} + ' produtos'"></p>
+        </div>
+
+        <div th:if="${produtos.isEmpty()}" class="empty-msg">
+            Ainda não ha produtos cadastrados.
+        </div>
+
+        <div class="produtos-grid" th:unless="${produtos.isEmpty()}">
+            <th:block th:each="produto : ${produtos}">
+                <div th:replace="~{fragments/produto-card :: card(${produto}, ${promoPorProduto.get(produto.id)})}"></div>
+            </th:block>
+        </div>
+
+        <div style="text-align: center; margin-top: 28px;">
+            <a th:href="@{/produtos}" class="btn btn-primary">Ver todos os produtos</a>
+        </div>
+
+    </div>
+</section>
+
+<section class="section" id="sobre">
+    <div class="container sobre-grid">
+        <div class="sobre-text">
+            <h2 style="font-family: var(--font-display); font-size: 28px; margin: 0 0 16px;">Sobre a Rudimar Móveis</h2>
+            <p>A Rudimar Móveis atende a região de Chapecó com uma seleção completa para equipar sua casa:
+                cozinhas, quartos e salas, com atendimento próximo e condições
+                especiais direto na loja.</p>
+            <p>Visite nossa loja física para ver os produtos de perto e tirar dúvidas com nossa equipe.</p>
+
+            <div class="redes-sociais">
+                <a th:href="${lojaInstagram}" target="_blank" rel="noopener" class="rede-social" aria-label="Instagram da Rudimar Móveis">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="5"/>
+                        <circle cx="12" cy="12" r="4"/>
+                        <circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"/>
+                    </svg>
+                    Instagram
+                </a>
+                <a th:href="${lojaFacebook}" target="_blank" rel="noopener" class="rede-social" aria-label="Facebook da Rudimar Móveis">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="9"/>
+                        <path d="M13.5 21v-6.5h2.2l.3-2.6h-2.5V10c0-.75.2-1.3 1.3-1.3h1.4V6.4c-.25-.03-1.1-.1-2.1-.1-2.1 0-3.5 1.28-3.5 3.6v2h-2.3v2.6h2.3V21"/>
+                    </svg>
+                    Facebook
+                </a>
+                <a th:href="@{https://wa.me/{numero}(numero=${lojaWhatsapp})}" target="_blank" rel="noopener" class="rede-social" aria-label="WhatsApp da Rudimar Móveis">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                        <path d="M17 14.2c-.3-.1-1.6-.8-1.9-.9-.3-.1-.4-.1-.6.1-.2.3-.7.9-.8 1-.2.2-.3.2-.5.1-.3-.1-1.2-.4-2.2-1.4-.8-.7-1.4-1.6-1.5-1.9-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.1.2-.3.2-.4.1-.2 0-.3 0-.5-.1-.1-.6-1.5-.8-2-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.3-.9.9-.9 2.2s1 2.6 1.1 2.8c.1.2 2 3 4.7 4.2.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.6-.7 1.9-1.3.2-.6.2-1.1.2-1.3-.1-.1-.3-.2-.5-.3z"/>
+                        <path d="M12 3C7 3 3 7 3 12c0 1.7.5 3.4 1.4 4.8L3 21l4.3-1.4C8.7 20.5 10.3 21 12 21c5 0 9-4 9-9s-4-9-9-9zm0 16.3c-1.5 0-3-.4-4.2-1.2l-.3-.2-3 1 1-2.9-.2-.3C4.4 15 4 13.5 4 12c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8z"/>
+                    </svg>
+                    WhatsApp
+                </a>
+            </div>
+
+            <ul class="info-list contato-list">
+                <li>
+                    <span class="label">Endereço</span>
+                    <a th:href="${lojaMapsUrl}" target="_blank" rel="noopener" class="endereco-link" th:text="${lojaEndereco}">Rua Marechal Deodoro da Fonseca, 169D - Centro</a>
+                </li>
+                <li><span class="label">Telefone fixo</span><span th:text="${lojaTelefoneExibicao}">3304 5830</span></li>
+            </ul>
+        </div>
+
+        <div class="sobre-mapa">
+            <div class="localizacao-card">
+                <div class="localizacao-card-head">
+                    <h2>Veja nossa localização</h2>
+                    <a th:href="${lojaMapsUrl}" target="_blank" rel="noopener" class="btn btn-outline">Abrir no Google Maps</a>
+                </div>
+                <div class="map-frame-wrap">
+                    <iframe th:src="${lojaMapsEmbedUrl}" loading="lazy" title="Mapa da loja Rudimar Móveis"></iframe>
+                </div>
+                <p class="map-note">Clique no mapa para abrir a localização exata no Google Maps.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer class="footer">
+    <div class="container" style="display: flex; justify-content: space-between; width: 100%;">
+        <span>&copy; 2026 Rudimar Móveis ltda. CNPJ: 22.459.828/0001-45. Todos os direitos reservados.</span>
+        <a th:href="@{/admin/login}">Área administrativa</a>
+    </div>
+</footer>
+
+<script th:src="@{/js/header.js}" defer></script>
+<script th:src="@{/js/promo-timer.js}" defer></script>
+</body>
+</html>

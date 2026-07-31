@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promoções - Rudimar Móveis</title>
+    <link rel="icon" type="image/png" href="/uploads/icone.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header('promocoes')}"></div>
+
+<section class="catalogo-topo">
+    <div class="container">
+        <p class="hero-eyebrow">Ofertas por tempo limitado</p>
+        <h1>Promoções</h1>
+        <p class="lead" th:if="${!promocoes.isEmpty()}" th:text="${promocoes.size()} + ' promoção(ões) ativa(s) no momento.'"></p>
+        <p class="lead" th:if="${promocoes.isEmpty()}">Nenhuma promoção ativa no momento.</p>
+    </div>
+</section>
+
+<section class="section" style="padding-top: 24px;">
+    <div class="container">
+        <div th:if="${promocoes.isEmpty()}" class="empty-msg">
+            Volte em breve para conferir novas ofertas!
+        </div>
+
+        <div class="promo-bloco" th:each="promo : ${promocoes}">
+            <a class="promo-banner" th:href="@{/promocoes/{id}(id=${promo.id})}">
+                <img th:if="${promo.imagemUrl}" th:src="${promo.imagemUrl}" class="promo-banner-imagem" th:alt="${promo.titulo}">
+                <span class="promo-banner-desconto" th:if="${promo.percentualDesconto != null}" th:text="'-' + ${promo.percentualDesconto} + '%'"></span>
+                <div class="promo-banner-texto">
+                    <h3 th:text="${promo.titulo}"></h3>
+                    <p th:if="${promo.descricao}" th:text="${promo.descricao}"></p>
+                </div>
+                <div class="promo-timer promo-timer-banner" th:if="${promo.validaAteIso != null}" th:attr="data-fim=${promo.validaAteIso}">
+                    <span class="promo-timer-label">Termina em</span>
+                    <span class="promo-timer-valor">--:--:--</span>
+                </div>
+                <span class="promo-banner-link">Ver oferta completa &rarr;</span>
+            </a>
+
+            <div class="produtos-grid" th:unless="${produtosPorPromocao.get(promo.id).isEmpty()}">
+                <th:block th:each="produto : ${produtosPorPromocao.get(promo.id)}">
+                    <div th:replace="~{fragments/produto-card :: card(${produto}, ${promoPorProduto.get(produto.id)})}"></div>
+                </th:block>
+            </div>
+            <p th:if="${produtosPorPromocao.get(promo.id).isEmpty()}" class="empty-msg promo-sem-produtos">
+                Nenhum produto ativo vinculado a esta promoção no momento.
+            </p>
+        </div>
+    </div>
+</section>
+
+<script th:src="@{/js/header.js}" defer></script>
+<script th:src="@{/js/promo-timer.js}" defer></script>
+
+<footer class="footer">
+    <div class="container" style="display: flex; justify-content: space-between; width: 100%;">
+        <span>&copy; 2026 Rudimar Móveis ltda. CNPJ: 22.459.828/0001-45. Todos os direitos reservados.</span>
+        <a th:href="@{/admin/login}">Área administrativa</a>
+    </div>
+</footer>
+
+</body>
+</html>

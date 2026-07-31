@@ -1,0 +1,9 @@
+target/
+uploads/
+*.class
+*.log
+.idea/
+*.iml
+.vscode/
+.DS_Store
+.env

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  Card de produto usado na vitrine da home, no catalogo e na pagina de cada promocao.
+  "promo" e um PromocaoProdutoInfo (pode ser nulo quando o produto nao esta em promocao).
+-->
+<a th:fragment="card(produto, promo)" class="produto-card" th:href="@{/produtos/{id}(id=${produto.id})}"
+   th:data-busca="${#strings.toLowerCase((produto.nome ?: '') + ' ' + (produto.descricao ?: ''))}"
+   th:data-categoria="${produto.categoria ?: ''}"
+   th:data-marca="${produto.marca ?: ''}"
+   th:data-cor="${produto.cor ?: ''}"
+   th:data-preco="${produto.preco}">
+    <div class="produto-imagem">
+        <img th:if="${produto.imagemPrincipal}" th:src="${produto.imagemPrincipal}" th:alt="${produto.nome}">
+        <span class="produto-tag-desconto" th:if="${promo != null and promo.percentualDesconto != null}" th:text="'-' + ${promo.percentualDesconto} + '%'"></span>
+    </div>
+    <div class="produto-info">
+        <p class="produto-categoria" th:if="${produto.categoria}" th:text="${produto.categoria}"></p>
+        <h3 th:text="${produto.nome}"></h3>
+        <p class="descricao" th:if="${produto.descricao}" th:text="${produto.descricao}"></p>
+
+        <p class="produto-promo-titulo" th:if="${promo != null}" th:text="${promo.titulo}"></p>
+
+        <div th:if="${promo != null}" class="produto-preco-promo">
+            <span class="preco-original" th:text="'R$ ' + ${#numbers.formatDecimal(produto.preco, 1, 'POINT', 2, 'COMMA')}"></span>
+            <span class="produto-preco produto-preco-destaque" th:text="'R$ ' + ${#numbers.formatDecimal(promo.precoPromocional, 1, 'POINT', 2, 'COMMA')}"></span>
+        </div>
+        <div th:unless="${promo != null}" class="produto-preco-bloco">
+            <p class="produto-preco" th:text="'R$ ' + ${#numbers.formatDecimal(produto.preco, 1, 'POINT', 2, 'COMMA')} + ' à vista'"></p>
+            <p class="produto-preco-parcela" th:if="${produto.precoCartao != null}"
+               th:text="'ou 10x de R$ ' + ${#numbers.formatDecimal(produto.parcela10x, 1, 'POINT', 2, 'COMMA')} + ' sem juros'"></p>
+        </div>
+
+        <div th:if="${promo != null and promo.validaAteIso != null}" class="promo-timer" th:attr="data-fim=${promo.validaAteIso}">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <circle cx="12" cy="12" r="9"/>
+                <path d="M12 7v5l3 3"/>
+            </svg>
+            <span class="promo-timer-valor">--:--:--</span>
+        </div>
+    </div>
+</a>
+
+</body>
+</html>
