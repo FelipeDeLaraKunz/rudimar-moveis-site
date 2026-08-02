@@ -1,178 +1,204 @@
-# Rudimar Móveis — site + painel administrativo
+# Rudimar Móveis
 
-Site para a Rudimar Móveis, feito em **Spring Boot + Thymeleaf + PostgreSQL**.
+Projeto de um site para uma loja de móveis (a Rudimar Móveis), com um painel administrativo
+simples pra controlar o estoque. Fiz em Java com Spring Boot, Thymeleaf pro HTML e banco
+Postgres.
 
-- **Site público** (`/`): informações da loja, mapa, redes sociais, uma vitrine pequena de
-  produtos em destaque e as promoções ativas. Ninguém precisa fazer login para ver.
-- **Catálogo completo** (`/produtos`): lista todos os produtos ativos, agrupados por
-  categoria — para quando a vitrine da home não for suficiente.
-- **Página do produto** (`/produtos/{id}`): fotos, descrição, preço e um botão que abre o
-  WhatsApp direto com uma mensagem pronta (em vez de "comprar"/"adicionar ao carrinho").
-- **Painel admin** (`/admin`): protegido por usuário e senha. É basicamente um
-  **gerenciador de estoque** — cadastro de produtos com quantidade em estoque, cor,
-  categoria, fotos (upload direto, não link) e se aparece ou não na home — além do
-  cadastro de promoções, que podem ter foto própria e vários produtos vinculados.
+A ideia não é ter carrinho de compras nem pagamento online, é mais uma vitrine: o cliente vê
+os produtos e manda mensagem no WhatsApp pra combinar a compra direto com a loja.
 
-## Estrutura do projeto
+## O que tem no site
+
+Página inicial (`/`) - dados da loja, mapa, redes sociais, alguns produtos em destaque e as
+promoções do momento. Não precisa estar logado pra ver nada disso.
+
+Catálogo (`/produtos`) - todos os produtos, separados por categoria. É pra quando a home não
+é suficiente e a pessoa quer ver tudo.
+
+Página de cada produto (`/produtos/{id}`) - fotos, descrição, preço, e um botão que já abre
+o WhatsApp com uma mensagem pronta perguntando sobre o produto.
+
+Painel admin (`/admin`) - só o dono da loja acessa (login e senha). É onde cadastra os
+produtos (quantidade em estoque, cor, categoria, fotos), decide o que aparece na home, e
+cadastra as promoções.
+
+## Como o projeto tá organizado
 
 ```
 src/main/java/com/rudimarmoveis/site/
-├── SiteApplication.java              # ponto de entrada
+├── SiteApplication.java          -> classe principal, é o que roda
 ├── config/
-│   ├── SecurityConfig.java           # login do admin (Spring Security)
-│   ├── WebConfig.java                # expõe a pasta de uploads como /uploads/**
-│   └── GlobalModelAttributes.java    # whatsapp, instagram, facebook, link do Maps
-├── model/                            # Produto e Promocao (entidades JPA)
-├── repository/                       # acesso ao banco (Spring Data JPA)
-├── service/ArmazenamentoImagensService.java  # salva as fotos enviadas no admin
+│   ├── SecurityConfig.java       -> configuração do login do admin
+│   ├── WebConfig.java            -> deixa a pasta de uploads acessível pelo navegador
+│   └── GlobalModelAttributes.java -> whatsapp, instagram, facebook, link do maps
+├── model/                        -> as entidades (Produto, Promocao)
+├── repository/                   -> interfaces do Spring Data pra mexer no banco
+├── service/ArmazenamentoImagensService.java -> salva as fotos que o admin envia
 └── controller/
-    ├── HomeController.java           # páginas públicas (home, catálogo, produto)
-    └── AdminController.java          # estoque e promoções
+    ├── HomeController.java       -> as páginas públicas
+    └── AdminController.java      -> tudo que é do painel admin
 
 src/main/resources/
 ├── application.properties
-├── db/migration/                     # scripts do banco (Flyway, nunca editar um já aplicado)
-├── templates/                        # HTML (Thymeleaf)
+├── db/migration/    -> scripts sql do Flyway (não mexer em um que já rodou!)
+├── templates/        -> os htmls (Thymeleaf)
 └── static/css/style.css
 ```
 
-## Rodando localmente (com Docker — mais fácil)
+## Rodando o projeto na sua máquina
 
-Se você tem Docker instalado, isso sobe o site inteiro (app + banco) com um comando:
+### Com Docker (mais fácil, recomendo)
+
+Se tiver Docker instalado é só rodar:
 
 ```bash
 docker compose up --build
 ```
 
-Acesse:
+Isso já sobe o site junto com o banco de dados. Depois é só acessar:
+
 - Site: http://localhost:8080
-- Admin: http://localhost:8080/admin/login (usuário: `admin`, senha: `troque-esta-senha`,
-  definidos no `docker-compose.yml` — troque antes de usar de verdade)
+- Admin: http://localhost:8080/admin/login
 
-## Rodando localmente (sem Docker)
+Usuário e senha do admin ficam configurados no `docker-compose.yml` (usuário `admin`,
+senha `troque-esta-senha`). Óbvio que essa senha é só pra testar, tem que trocar antes de
+usar de verdade.
 
-1. Suba um Postgres local (ou use um já existente) e crie o banco:
-   ```sql
-   CREATE DATABASE loja_moveis;
-   ```
-2. Ajuste as credenciais no `application.properties` ou exporte as variáveis de ambiente:
-   ```bash
-   export DATABASE_URL=jdbc:postgresql://localhost:5432/loja_moveis
-   export DATABASE_USERNAME=postgres
-   export DATABASE_PASSWORD=sua_senha
-   export ADMIN_USERNAME=admin
-   export ADMIN_PASSWORD=uma_senha_forte
-   ```
-3. Rode a aplicação:
-   ```bash
-   ./mvnw spring-boot:run
-   ```
-   (ou pela sua IDE, rodando a classe `SiteApplication`)
+### Sem Docker
 
-O Flyway cria as tabelas automaticamente na primeira execução, já com alguns produtos e
-uma promoção de exemplo — é só editar/excluir pelo painel admin depois.
+1. Precisa ter um Postgres rodando e criar o banco:
 
-⚠️ **Nunca edite um arquivo de migration (`V1__...`) que já rodou em algum banco.** Se quiser
-mudar o schema depois, crie um novo arquivo `V2__algo.sql`, `V3__algo.sql`, etc. Editar um já
-aplicado causa o erro "Migration checksum mismatch" nesse banco.
+```sql
+CREATE DATABASE loja_moveis;
+```
 
-## Dados da loja (WhatsApp, endereço, redes sociais)
+2. Configurar as credenciais, ou no `application.properties` ou criando as variáveis de
+   ambiente:
 
-Ficam centralizados no `application.properties` (seção "Dados de contato da loja"), e
-podem ser sobrescritos por variável de ambiente sem mexer no código:
+```bash
+export DATABASE_URL=jdbc:postgresql://localhost:5432/loja_moveis
+export DATABASE_USERNAME=postgres
+export DATABASE_PASSWORD=sua_senha
+export ADMIN_USERNAME=admin
+export ADMIN_PASSWORD=uma_senha_forte
+```
 
-| Propriedade | Variável de ambiente | O que é |
-|---|---|---|
-| `loja.whatsapp` | `LOJA_WHATSAPP` | número no formato internacional, só dígitos (ex: `5549984372223`) |
-| `loja.telefone-exibicao` | `LOJA_TELEFONE_EXIBICAO` | telefone formatado, só para exibir |
-| `loja.endereco` | `LOJA_ENDERECO` | usado para montar o link do Google Maps |
-| `loja.instagram` | `LOJA_INSTAGRAM` | link completo do Instagram |
-| `loja.facebook` | `LOJA_FACEBOOK` | link completo do Facebook |
+3. E rodar:
 
-**⚠️ Troque os links de Instagram e Facebook** — coloquei `instagram.com/rudimarmoveis` e
-`facebook.com/rudimarmoveis` como exemplo, mas não sei se são as contas reais da loja.
+```bash
+./mvnw spring-boot:run
+```
 
-O botão "Como chegar" e o endereço no rodapé abrem o Google Maps direto com o endereço
-configurado — **não precisa de chave de API do Google**, é um link de busca comum
-(`google.com/maps/search`), então funciona de graça e sem nenhuma configuração extra.
+(ou então dá pra rodar direto pela IDE, na classe `SiteApplication`)
 
-## Painel admin: estoque de produtos
+Na primeira vez que roda, o Flyway já cria as tabelas e coloca uns produtos e uma
+promoção de exemplo, só pra não ficar tudo vazio. Depois é só apagar/editar pelo admin.
 
-Cada produto tem:
-- **Categoria** e **cor**: escolhidas em uma lista pronta (não é mais texto livre) — para
-  adicionar mais opções, edite as `<option>` em `templates/admin/produtos.html`.
-- **Unidades em estoque**: só aparece para o admin, nunca é mostrado no site público.
-- **Mostrar na página inicial**: controla se o produto entra na vitrine pequena da home,
-  separado de "visível no site" (que controla se ele aparece em geral, inclusive no
-  catálogo completo).
-- **Fotos**: upload direto de arquivo (não é mais link) — pode enviar várias de uma vez,
-  e dá pra adicionar mais fotos ou remover fotos antigas depois, editando o produto.
+Ah, e um aviso: nunca edite um arquivo de migration que já foi executado (tipo o
+`V1__...`). Se precisar mudar alguma coisa no banco depois, cria um arquivo novo
+(`V2__alguma_coisa.sql`) em vez de editar o antigo. Se editar um que já rodou, dá erro de
+checksum e trava tudo.
 
-## Painel admin: promoções
+## Configurações da loja (whatsapp, endereço, redes sociais)
 
-- Pode enviar uma foto para a promoção (upload, mesma lógica dos produtos).
-- Pode selecionar **vários produtos** participantes da promoção, escolhendo entre os que
-  estão ativos e com estoque disponível (segure Ctrl/Cmd para marcar mais de um).
+Tudo isso fica no `application.properties`, na parte "Dados de contato da loja". Dá pra
+trocar sem mexer no código, só sobrescrevendo a variável de ambiente correspondente:
 
-## Onde ficam as fotos enviadas (importante para o deploy!)
+- `loja.whatsapp` (ou `LOJA_WHATSAPP`) - número em formato internacional, só números, tipo
+  5549984372223
+- `loja.telefone-exibicao` (ou `LOJA_TELEFONE_EXIBICAO`) - telefone formatado bonitinho, só
+  pra mostrar na tela
+- `loja.endereco` (ou `LOJA_ENDERECO`) - usado pra montar o link do Google Maps
+- `loja.instagram` (ou `LOJA_INSTAGRAM`) - link do Instagram
+- `loja.facebook` (ou `LOJA_FACEBOOK`) - link do Facebook
 
-As imagens enviadas pelo admin são salvas em uma pasta `uploads/` no servidor (fora do
-`.jar`), e servidas em `/uploads/arquivo.jpg`. Isso tem uma implicação importante:
+Coloquei instagram.com/rudimarmoveis e facebook.com/rudimarmoveis como exemplo mas não sei
+se são as contas reais da loja, então trocar antes de publicar.
 
-- **Com Docker**: o `docker-compose.yml` já cria um volume (`uploads_data`) para essa
-  pasta, então as fotos sobrevivem a reinícios e rebuilds do container.
-- **Em Railway/Render ou qualquer host "sem estado"**: se você não configurar um **disco
-  persistente** apontando para a pasta de uploads, as fotos enviadas pelo admin **somem a
-  cada novo deploy**. Procure por "Persistent Disk" ou "Volumes" nas configurações do
-  serviço e aponte para o caminho da variável `APP_UPLOAD_DIR` (padrão: `uploads`).
+O botão "Como chegar" e o endereço no rodapé abrem o Google Maps já com o endereço
+configurado. Não precisa de chave de API nem nada, é só um link de busca normal do maps
+mesmo (google.com/maps/search), então funciona de graça.
 
-## Como funciona o controle de acesso
+## Painel admin - estoque
 
-- Todo mundo pode ver `/`, `/produtos` e `/produtos/{id}` (as páginas públicas).
-- Só quem estiver logado como admin acessa `/admin/**`.
-- Não existe cadastro de usuário comum — o único usuário do sistema é o administrador,
-  configurado via variáveis de ambiente (`ADMIN_USERNAME` / `ADMIN_PASSWORD`).
+Cada produto cadastrado tem:
 
-**Antes de colocar no ar, troque a senha padrão!** Nunca deixe `troque-esta-senha` em produção.
+- Categoria e cor, escolhidas numa lista já pronta (não é mais texto livre). Se quiser
+  adicionar mais opções de categoria/cor é só editar as tags `<option>` no arquivo
+  `templates/admin/produtos.html`
+- Quantidade em estoque - isso só o admin vê, nunca aparece pro cliente no site
+- Um checkbox pra "mostrar na página inicial" (diferente do "visível no site", que
+  controla se o produto aparece em geral, inclusive no catálogo)
+- Fotos - dá pra fazer upload de arquivo direto (não é mais link de imagem), pode mandar
+  várias de uma vez, e depois ainda dá pra adicionar mais ou remover alguma editando o
+  produto
 
-## Colocando o site no ar (deploy)
+## Painel admin - promoções
 
-Existem várias formas, do mais simples ao mais robusto.
+A promoção também pode ter uma foto (upload, mesmo esquema dos produtos) e pode escolher
+vários produtos participantes ao mesmo tempo, entre os que estão ativos e com estoque
+(segurando Ctrl ou Cmd pra marcar mais de um).
 
-### Opção 1 — Railway ou Render (recomendado para começar)
+## Sobre as fotos que o admin envia (cuidado nisso ao publicar)
 
-Ambos suportam subir uma aplicação a partir do `Dockerfile` deste projeto, com um banco
-Postgres gerenciado junto. O passo a passo (resumido) é:
+As fotos que o admin sobe ficam salvas numa pasta `uploads/` no servidor (fora do .jar) e
+são servidas em `/uploads/nome-do-arquivo.jpg`. Isso importa bastante na hora de colocar
+no ar:
 
-1. Crie uma conta em [railway.app](https://railway.app) ou [render.com](https://render.com).
-2. Suba este projeto para um repositório no GitHub.
-3. No painel do Railway/Render, crie um novo serviço "a partir de um repositório Git" e
-   aponte para o seu repositório (ele detecta o `Dockerfile` automaticamente).
-4. Adicione um banco Postgres pelo próprio painel (um clique) — a plataforma gera uma
-   `DATABASE_URL` automaticamente.
-5. Configure as variáveis de ambiente do serviço (veja as tabelas acima e o
-   `application.properties` para a lista completa).
-6. Configure um **disco persistente** para a pasta de uploads (ver seção acima).
-7. Faça o deploy. A plataforma te dá uma URL pública tipo `https://seu-projeto.up.railway.app`.
-8. (Opcional) Configure um domínio próprio (ex: `www.rudimarmoveis.com.br`) nas configurações
-   de domínio do serviço.
+- Com Docker, o `docker-compose.yml` já cria um volume (`uploads_data`) pra essa pasta,
+  então as fotos não somem quando reinicia ou builda o container de novo
+- Só que se for usar Railway, Render ou qualquer serviço que não guarda estado, se não
+  configurar um disco persistente apontando pra pasta de uploads, toda vez que fizer um
+  novo deploy as fotos cadastradas somem. Nas configurações do serviço, procurar por algo
+  tipo "Persistent Disk" ou "Volumes" e apontar pro caminho da variável `APP_UPLOAD_DIR`
+  (o padrão dela é `uploads`)
 
-### Opção 2 — VPS própria (DigitalOcean, Hetzner, etc.)
+## Login e permissões
 
-Mais controle, um pouco mais de trabalho manual:
+- `/`, `/produtos` e `/produtos/{id}` são públicas, qualquer um vê
+- `/admin/**` só quem estiver logado
+- não tem cadastro de usuário comum, o único login que existe é o do administrador mesmo,
+  configurado pelas variáveis `ADMIN_USERNAME` e `ADMIN_PASSWORD`
 
-1. Crie um servidor (droplet/instância) com Ubuntu.
-2. Instale Docker e Docker Compose no servidor.
-3. Copie este projeto para o servidor (`git clone` ou `scp`).
-4. Rode `docker compose up -d --build` (o mesmo `docker-compose.yml` deste projeto, que já
-   persiste banco de dados e uploads em volumes).
-5. Configure um domínio apontando para o IP do servidor.
-6. Coloque um Nginx (ou Caddy, que já cuida do HTTPS sozinho) na frente da aplicação como
-   proxy reverso, e gere um certificado SSL gratuito (Let's Encrypt / Certbot, ou automático
-   no Caddy).
+Antes de colocar em produção não esquece de trocar a senha padrão. Deixar
+`troque-esta-senha` valendo seria phoda.
 
-### Opção 3 — AWS (mais robusta, mais complexa)
+## Deploy
 
-Para quando o site crescer bastante: Elastic Beanstalk ou ECS para rodar o container, RDS
-para o Postgres gerenciado, e S3 para as fotos (em vez da pasta local de uploads). Não é
-necessário para começar — vale considerar mais pra frente se o negócio crescer.
+Não testei todas as opções ainda, mas fica o resumo de como pretendo (ou como daria pra)
+publicar isso:
+
+### Railway ou Render (mais simples)
+
+Os dois conseguem subir a aplicação direto a partir do Dockerfile do projeto, com um banco
+Postgres gerenciado junto:
+
+1. Criar conta no railway.app ou no render.com
+2. Subir o projeto pra um repositório no GitHub
+3. Criar um novo serviço "a partir de repositório Git" apontando pro repo (ele já detecta
+   o Dockerfile sozinho)
+4. Adicionar um Postgres pelo próprio painel, que gera a `DATABASE_URL` automaticamente
+5. Preencher as variáveis de ambiente do serviço (tudo que tá listado lá em cima e no
+   application.properties)
+6. Configurar o disco persistente pra pasta de uploads (ver a seção de cima, isso é
+   importante)
+7. Deployar. A plataforma dá uma URL tipo `https://seu-projeto.up.railway.app`
+8. Se quiser, dá pra configurar um domínio próprio depois
+
+### VPS (Digital Ocean, Hetzner, etc)
+
+Dá mais trabalho mas tem mais controle:
+
+1. Sobe um servidor Ubuntu
+2. Instala Docker e Docker Compose nele
+3. Copia o projeto pro servidor (git clone ou scp)
+4. Roda `docker compose up -d --build` (o mesmo docker-compose.yml do projeto já persiste
+   banco e uploads em volume)
+5. Aponta um domínio pro IP do servidor
+6. Coloca um Nginx ou Caddy na frente como proxy reverso, com certificado SSL (o Caddy já
+   resolve isso sozinho)
+
+### AWS
+
+Isso aí só se o negócio crescer bastante mesmo, não é necessário agora. Seria tipo Elastic
+Beanstalk ou ECS pra rodar o container, RDS pro banco, S3 pras fotos em vez da pasta local.
