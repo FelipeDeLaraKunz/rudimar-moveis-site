@@ -47,8 +47,19 @@
                 </div>
             </div>
 
-            <div class="produto-detalhe-info">
-                <p class="produto-categoria" th:if="${produto.categoria}" th:text="${produto.categoria}"></p>
+            <div class="produto-detalhe-info" th:style="${promoInfo != null ? '--sale: ' + promoInfo.cor + ';' : ''}">
+                <div class="produto-detalhe-topo">
+                    <p class="produto-categoria" th:if="${produto.categoria}" th:text="${produto.categoria}"></p>
+                    <button type="button" class="btn-compartilhar" id="btnCompartilhar">
+                        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M12 3v12"/>
+                            <path d="M8 7l4-4 4 4"/>
+                            <path d="M4 13v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/>
+                        </svg>
+                        Compartilhar
+                    </button>
+                    <span id="compartilharStatus" class="compartilhar-status"></span>
+                </div>
                 <h1 th:text="${produto.nome}"></h1>
 
                 <div th:if="${promoInfo != null}" class="produto-detalhe-preco-promo">
@@ -57,6 +68,8 @@
                     <p class="produto-detalhe-preco produto-preco-destaque"
                        th:text="'R$ ' + ${#numbers.formatDecimal(promoInfo.precoPromocional, 1, 'POINT', 2, 'COMMA')}"></p>
                 </div>
+                <p class="produto-preco-parcela" th:if="${promoInfo != null and promoInfo.precoPromocionalCartao != null}"
+                   th:text="'ou 10x de R$ ' + ${#numbers.formatDecimal(promoInfo.parcela10x, 1, 'POINT', 2, 'COMMA')} + ' sem juros no cartão'"></p>
                 <div th:unless="${promoInfo != null}" class="produto-detalhe-preco-bloco">
                     <p class="produto-detalhe-preco" th:text="'R$ ' + ${#numbers.formatDecimal(produto.preco, 1, 'POINT', 2, 'COMMA')} + ' à vista'"></p>
                     <p class="produto-preco-parcela" th:if="${produto.precoCartao != null}"
@@ -101,6 +114,7 @@
 <script th:src="@{/js/produto-carousel.js}" defer></script>
 <script th:src="@{/js/promo-timer.js}" defer></script>
 <script th:src="@{/js/produto-lightbox.js}" defer></script>
+<script th:src="@{/js/produto-compartilhar.js}" defer></script>
 
 <footer class="footer">
     <div class="container" style="display: flex; justify-content: space-between; width: 100%;">

@@ -11,7 +11,8 @@
    th:data-categoria="${produto.categoria ?: ''}"
    th:data-marca="${produto.marca ?: ''}"
    th:data-cor="${produto.cor ?: ''}"
-   th:data-preco="${produto.preco}">
+   th:data-preco="${produto.preco}"
+   th:style="${promo != null ? '--sale: ' + promo.cor + ';' : ''}">
     <div class="produto-imagem">
         <img th:if="${produto.imagemPrincipal}" th:src="${produto.imagemPrincipal}" th:alt="${produto.nome}">
         <span class="produto-tag-desconto" th:if="${promo != null and promo.percentualDesconto != null}" th:text="'-' + ${promo.percentualDesconto} + '%'"></span>
@@ -27,6 +28,8 @@
             <span class="preco-original" th:text="'R$ ' + ${#numbers.formatDecimal(produto.preco, 1, 'POINT', 2, 'COMMA')}"></span>
             <span class="produto-preco produto-preco-destaque" th:text="'R$ ' + ${#numbers.formatDecimal(promo.precoPromocional, 1, 'POINT', 2, 'COMMA')}"></span>
         </div>
+        <p class="produto-preco-parcela" th:if="${promo != null and promo.precoPromocionalCartao != null}"
+           th:text="'ou 10x de R$ ' + ${#numbers.formatDecimal(promo.parcela10x, 1, 'POINT', 2, 'COMMA')} + ' sem juros'"></p>
         <div th:unless="${promo != null}" class="produto-preco-bloco">
             <p class="produto-preco" th:text="'R$ ' + ${#numbers.formatDecimal(produto.preco, 1, 'POINT', 2, 'COMMA')} + ' à vista'"></p>
             <p class="produto-preco-parcela" th:if="${produto.precoCartao != null}"

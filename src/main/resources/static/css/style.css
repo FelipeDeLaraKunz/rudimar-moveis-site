@@ -24,7 +24,9 @@
   --border: #DCE2E8;
   --radius: 14px;
   --sale: #C1440E;
-  --sale-bg: #FCEBE3;
+  /* derivada de --sale (nao fixa): cada promocao pode sobrescrever so --sale inline
+     (ver produto-card.html, produto-detalhe.html, promo-banner) e o fundo claro acompanha */
+  --sale-bg: color-mix(in srgb, var(--sale) 12%, white);
 
   --font-display: "Baloo 2", "Nunito", sans-serif;
   --font-body: "Nunito", -apple-system, sans-serif;
@@ -809,6 +811,44 @@ a {
   margin: 0 0 14px;
 }
 
+.produto-detalhe-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.btn-compartilhar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-compartilhar:hover {
+  border-color: var(--wood);
+  color: var(--wood);
+}
+
+.compartilhar-status {
+  font-size: 12.5px;
+  color: var(--sage);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.compartilhar-status-visivel {
+  opacity: 1;
+}
+
 .produto-detalhe-info h1 {
   font-family: var(--font-display);
   font-size: 30px;
@@ -835,6 +875,10 @@ a {
 .produto-preco-parcela {
   font-size: 13px;
   color: var(--ink-soft);
+}
+
+.produto-detalhe-preco-promo + .produto-preco-parcela {
+  margin: 0 0 20px;
 }
 
 .produto-detalhe-descricao {
@@ -1282,6 +1326,15 @@ a {
     padding: 0 16px;
   }
 
+  /* ---- Promocoes (admin): checkbox+nome numa linha, os dois precos embaixo ---- */
+  .promo-produto-check {
+    flex-basis: 100%;
+  }
+
+  .promo-produto-preco {
+    width: calc(50% - 6px);
+  }
+
   /* ---- Cabecalho: menu hamburguer, busca sempre visivel ---- */
   .header-top {
     padding: 12px 0;
@@ -1659,6 +1712,13 @@ a {
   background: var(--surface-warm);
 }
 
+.promo-cor-input {
+  width: 64px;
+  height: 40px;
+  padding: 4px;
+  cursor: pointer;
+}
+
 .form-field textarea {
   min-height: 70px;
   resize: vertical;
@@ -1674,49 +1734,6 @@ a {
 .form-error {
   color: #A32D2D;
   font-size: 12.5px;
-}
-
-.campo-com-ia {
-  display: flex;
-  gap: 8px;
-}
-
-.campo-com-ia input {
-  flex: 1;
-}
-
-.btn-ia {
-  background: var(--sage);
-  color: #fff;
-  border: none;
-  padding: 0 14px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.btn-ia:hover {
-  opacity: 0.9;
-}
-
-.btn-ia:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.ia-status {
-  font-size: 11.5px;
-  min-height: 14px;
-}
-
-.ia-status-ok {
-  color: var(--sage);
-}
-
-.ia-status-erro {
-  color: #A32D2D;
 }
 
 .upload-fotos-acoes {
@@ -1806,6 +1823,7 @@ a {
 .promo-produto-linha {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 12px;
   padding: 10px 0;
   border-bottom: 1px solid var(--border);

@@ -21,7 +21,6 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   configurarUploadFotos();
-  configurarUsarIa();
 
   var tabela = document.getElementById('tabelaProdutos');
   if (!tabela) {
@@ -102,91 +101,6 @@ function cabecalhosComCsrf() {
     cabecalhos[metaHeader.content] = meta.content;
   }
   return cabecalhos;
-}
-
-// Botao "Usar IA": aparece quando o nome interno e preenchido. Ao clicar, aciona o webhook do
-// n8n (via /admin/produtos/gerar-com-ia) mandando so o nome interno, e a automacao la devolve
-// nome/descricao/cor/categoria/marca prontos. Fotos continuam manuais (ver configurarUploadFotos).
-function configurarUsarIa() {
-  var campoNomeInterno = document.getElementById('nomeInterno');
-  var botaoIa = document.getElementById('btnUsarIa');
-  var status = document.getElementById('iaStatus');
-  if (!campoNomeInterno || !botaoIa) {
-    return;
-  }
-
-  var campoNome = document.getElementById('nome');
-  var campoDescricao = document.getElementById('descricao');
-  var campoCor = document.getElementById('cor');
-  var campoCategoria = document.getElementById('categoria');
-  var campoMarca = document.getElementById('marca');
-
-  function selecionarOpcao(select, valor) {
-    if (!select || !valor) return;
-    var opcaoEncontrada = Array.prototype.slice.call(select.options).find(function (opcao) {
-      return opcao.value.toLowerCase() === valor.toLowerCase();
-    });
-    if (opcaoEncontrada) {
-      select.value = opcaoEncontrada.value;
-    }
-  }
-
-  function atualizarVisibilidade() {
-    botaoIa.hidden = campoNomeInterno.value.trim() === '';
-  }
-
-  campoNomeInterno.addEventListener('input', atualizarVisibilidade);
-  atualizarVisibilidade();
-
-  botaoIa.addEventListener('click', function () {
-    var nomeInterno = campoNomeInterno.value.trim();
-    if (!nomeInterno) {
-      return;
-    }
-
-    botaoIa.disabled = true;
-    var textoOriginal = botaoIa.textContent;
-    botaoIa.textContent = 'Gerando...';
-    if (status) {
-      status.textContent = '';
-      status.className = 'ia-status';
-    }
-
-    fetch('/admin/produtos/gerar-com-ia', {
-      method: 'POST',
-      headers: cabecalhosComCsrf(),
-      body: JSON.stringify({ nomeInterno: nomeInterno })
-    })
-      .then(function (resposta) {
-        return resposta.json().then(function (dados) {
-          if (!resposta.ok) {
-            throw new Error(dados.erro || 'Falha ao acionar a automacao.');
-          }
-          return dados;
-        });
-      })
-      .then(function (sugestao) {
-        if (campoNome && sugestao.nome) campoNome.value = sugestao.nome;
-        if (campoDescricao && sugestao.descricao) campoDescricao.value = sugestao.descricao;
-        if (campoMarca && sugestao.marca) campoMarca.value = sugestao.marca;
-        selecionarOpcao(campoCor, sugestao.cor);
-        selecionarOpcao(campoCategoria, sugestao.categoria);
-        if (status) {
-          status.textContent = 'Dados da automação aplicados — revise antes de salvar.';
-          status.className = 'ia-status ia-status-ok';
-        }
-      })
-      .catch(function (erro) {
-        if (status) {
-          status.textContent = erro.message;
-          status.className = 'ia-status ia-status-erro';
-        }
-      })
-      .finally(function () {
-        botaoIa.disabled = false;
-        botaoIa.textContent = textoOriginal;
-      });
-  });
 }
 
 // Upload de fotos com pre-visualizacao imediata e X para remover antes de salvar.

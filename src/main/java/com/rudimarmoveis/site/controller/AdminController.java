@@ -2,11 +2,9 @@ package com.rudimarmoveis.site.controller;
 
 import com.rudimarmoveis.site.model.Produto;
 import com.rudimarmoveis.site.model.Promocao;
-import com.rudimarmoveis.site.model.SugestaoProdutoIA;
 import com.rudimarmoveis.site.repository.ProdutoRepository;
 import com.rudimarmoveis.site.repository.PromocaoRepository;
 import com.rudimarmoveis.site.service.ArmazenamentoImagensService;
-import com.rudimarmoveis.site.service.IaProdutoService;
 import com.rudimarmoveis.site.service.ImagemExternaService;
 import com.rudimarmoveis.site.service.PlanilhaEstoqueService;
 import jakarta.validation.Valid;
@@ -40,7 +38,6 @@ public class AdminController {
     private final PromocaoRepository promocaoRepository;
     private final ArmazenamentoImagensService armazenamentoImagens;
     private final PlanilhaEstoqueService planilhaEstoqueService;
-    private final IaProdutoService iaProdutoService;
     private final ImagemExternaService imagemExterna;
 
     @Autowired
@@ -48,14 +45,12 @@ public class AdminController {
                             PromocaoRepository promocaoRepository,
                             ArmazenamentoImagensService armazenamentoImagens,
                             PlanilhaEstoqueService planilhaEstoqueService,
-                            IaProdutoService iaProdutoService,
                             ImagemExternaService imagemExterna) {
         this.produtoRepository = produtoRepository;
         this.promocaoRepository = promocaoRepository;
         this.armazenamentoImagens = armazenamentoImagens;
         this.planilhaEstoqueService = planilhaEstoqueService;
         this.imagemExterna = imagemExterna;
-        this.iaProdutoService = iaProdutoService;
     }
 
     @GetMapping("/login")
@@ -135,26 +130,6 @@ public class AdminController {
             produtoRepository.delete(produto);
         });
         return "redirect:/admin/produtos";
-    }
-
-    // gera nome/descricao/cor/categoria com IA a partir do nome interno (a IA nao mexe em fotos: isso continua manual)
-    @PostMapping("/produtos/gerar-com-ia")
-    @ResponseBody
-    public ResponseEntity<?> gerarProdutoComIa(@RequestBody GerarIaRequest requisicao) {
-        if (!StringUtils.hasText(requisicao.nomeInterno())) {
-            return ResponseEntity.badRequest().body(Map.of("erro", "Informe o nome interno antes de usar a IA."));
-        }
-        try {
-            SugestaoProdutoIA sugestao = iaProdutoService.gerarSugestao(requisicao.nomeInterno());
-            return ResponseEntity.ok(sugestao);
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of("erro", e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(Map.of("erro", "Falha ao consultar a IA: " + e.getMessage()));
-        }
-    }
-
-    public record GerarIaRequest(String nomeInterno) {
     }
 
     // cria produtos em lote a partir de uma planilha de estoque (quantidade, nome tecnico, categoria e marca).

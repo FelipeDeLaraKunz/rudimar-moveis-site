@@ -29,7 +29,7 @@
         </div>
 
         <div class="promo-bloco" th:each="promo : ${promocoes}">
-            <a class="promo-banner" th:href="@{/promocoes/{id}(id=${promo.id})}">
+            <a class="promo-banner" th:href="@{/promocoes/{id}(id=${promo.id})}" th:style="'--sale: ' + ${promo.cor} + ';'">
                 <img th:if="${promo.imagemUrl}" th:src="${promo.imagemUrl}" class="promo-banner-imagem" th:alt="${promo.titulo}">
                 <span class="promo-banner-desconto" th:if="${promo.percentualDesconto != null}" th:text="'-' + ${promo.percentualDesconto} + '%'"></span>
                 <div class="promo-banner-texto">

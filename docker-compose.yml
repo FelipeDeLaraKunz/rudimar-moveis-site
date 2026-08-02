@@ -33,8 +33,6 @@ services:
       DATABASE_PASSWORD: postgres
       ADMIN_USERNAME: ${ADMIN_USERNAME}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
-      N8N_WEBHOOK_URL: ${N8N_WEBHOOK_URL:-}
-      AUTOMACAO_API_KEY: ${AUTOMACAO_API_KEY:-}
 
 volumes:
   db_data:

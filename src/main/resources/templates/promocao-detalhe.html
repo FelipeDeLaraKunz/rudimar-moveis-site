@@ -13,7 +13,7 @@
 
 <div th:replace="~{fragments/header :: header('promocoes')}"></div>
 
-<section class="catalogo-topo">
+<section class="catalogo-topo" th:style="'--sale: ' + ${promocao.cor} + ';'">
     <div class="container">
         <a th:href="@{/}" class="voltar-link">&larr; Voltar para a home</a>
 

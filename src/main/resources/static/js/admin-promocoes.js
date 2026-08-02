@@ -40,14 +40,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
     linhas.forEach(function (linha) {
       var checkbox = linha.querySelector('.promo-produto-toggle');
-      var precoInput = linha.querySelector('.promo-produto-preco');
-      if (!checkbox || !precoInput) {
+      var precoInputs = Array.prototype.slice.call(linha.querySelectorAll('.promo-produto-preco'));
+      var precoInput = precoInputs[0]; // preco a vista - usado pra sugestao automatica
+      if (!checkbox || !precoInputs.length) {
         return;
       }
 
       checkbox.addEventListener('change', function () {
-        precoInput.disabled = !checkbox.checked;
-        if (checkbox.checked && !precoInput.value) {
+        precoInputs.forEach(function (input) {
+          input.disabled = !checkbox.checked;
+        });
+        if (checkbox.checked && precoInput && !precoInput.value) {
           var precoOriginal = parseFloat(linha.dataset.precoOriginal);
           var desconto = campoDesconto ? parseFloat(campoDesconto.value) : NaN;
           if (!isNaN(precoOriginal) && !isNaN(desconto)) {

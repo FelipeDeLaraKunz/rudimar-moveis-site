@@ -56,21 +56,6 @@ public class ArmazenamentoImagensService {
         }
     }
 
-    /**
-     * Salva bytes de imagem ja em memoria (ex: baixados de uma URL externa) e retorna o
-     * caminho publico (ex: /uploads/uuid.jpg). Usado pela API de automacao (n8n).
-     */
-    public String salvar(byte[] conteudo, String extensao) {
-        String novoNome = UUID.randomUUID() + (extensao == null ? "" : extensao);
-        try {
-            Path destino = diretorioUploads.resolve(novoNome);
-            Files.write(destino, conteudo);
-            return "/uploads/" + novoNome;
-        } catch (IOException e) {
-            throw new UncheckedIOException("Falha ao salvar imagem baixada", e);
-        }
-    }
-
     /** Remove um arquivo previamente salvo (usado ao excluir produto/imagem). Falhas sao ignoradas. */
     public void excluir(String caminhoPublico) {
         if (!StringUtils.hasText(caminhoPublico) || !caminhoPublico.startsWith("/uploads/")) {

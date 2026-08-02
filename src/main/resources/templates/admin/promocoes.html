@@ -72,6 +72,13 @@
                     </select>
                 </div>
 
+                <div class="form-field">
+                    <label for="cor">Cor da promoção</label>
+                    <input type="color" id="cor" th:field="*{cor}" class="promo-cor-input">
+                    <span class="form-error" th:if="${#fields.hasErrors('cor')}" th:errors="*{cor}"></span>
+                    <span style="font-size: 11.5px; color: var(--ink-soft);">Usada no selo, no preço em destaque e no timer, em todo o site.</span>
+                </div>
+
                 <div class="form-field full">
                     <label>Produtos participantes e preço promocional</label>
                     <input type="text" id="filtroProdutosPromo" class="promo-produtos-filtro" placeholder="Filtrar produtos pelo nome...">
@@ -84,17 +91,22 @@
                                 <span th:text="${p.nomeInterno} + ' · R$ ' + ${#numbers.formatDecimal(p.preco, 1, 'POINT', 2, 'COMMA')}"></span>
                             </label>
                             <input type="number" step="0.01" min="0" class="promo-produto-preco"
-                                   th:name="'precosPromocionais[' + ${p.id} + ']'"
-                                   th:value="${promocao.precosPromocionais.get(p.id)}"
+                                   th:name="'precosPromocionais[' + ${p.id} + '].precoPromocional'"
+                                   th:value="${promocao.precosPromocionais.get(p.id)?.precoPromocional}"
                                    th:disabled="${!promocao.precosPromocionais.containsKey(p.id)}"
-                                   placeholder="Preço promocional">
+                                   placeholder="Preço à vista">
+                            <input type="number" step="0.01" min="0" class="promo-produto-preco promo-produto-preco-cartao"
+                                   th:name="'precosPromocionais[' + ${p.id} + '].precoPromocionalCartao'"
+                                   th:value="${promocao.precosPromocionais.get(p.id)?.precoPromocionalCartao}"
+                                   th:disabled="${!promocao.precosPromocionais.containsKey(p.id)}"
+                                   placeholder="Preço no cartão (opcional)">
                         </div>
                         <p th:if="${produtosDisponiveis.isEmpty()}" class="empty-msg" style="margin: 0;">
                             Nenhum produto ativo com estoque disponível para incluir em promoções.
                         </p>
                     </div>
                     <span style="font-size: 11.5px; color: var(--ink-soft);">
-                        Marque os produtos que entram na promoção e informe o preço promocional de cada um (o preço normal do produto não é alterado). Ao marcar, sugerimos um valor com base no desconto acima — edite livremente. Só aparecem produtos ativos e com estoque disponível.
+                        Marque os produtos que entram na promoção e informe o preço à vista de cada um (o preço no cartão é opcional — deixe em branco se não quiser mostrar parcelamento). O preço normal do produto não é alterado. Ao marcar, sugerimos o preço à vista com base no desconto acima — edite livremente. Só aparecem produtos ativos e com estoque disponível.
                     </span>
                 </div>
 

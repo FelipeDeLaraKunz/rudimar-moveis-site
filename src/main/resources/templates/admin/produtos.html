@@ -58,12 +58,8 @@
             <div class="form-grid">
                 <div class="form-field">
                     <label for="nomeInterno">Nome interno (técnico, só aparece aqui no admin)</label>
-                    <div class="campo-com-ia">
-                        <input type="text" id="nomeInterno" th:field="*{nomeInterno}" placeholder="Ex: SOFA-RETR-3L-CINZA-V2">
-                        <button type="button" id="btnUsarIa" class="btn-ia" hidden>✨ Usar IA</button>
-                    </div>
+                    <input type="text" id="nomeInterno" th:field="*{nomeInterno}" placeholder="Ex: SOFA-RETR-3L-CINZA-V2">
                     <span class="form-error" th:if="${#fields.hasErrors('nomeInterno')}" th:errors="*{nomeInterno}"></span>
-                    <span id="iaStatus" class="ia-status"></span>
                 </div>
 
                 <div class="form-field">
@@ -170,6 +166,20 @@
                             <option value="Dourado">Dourado</option>
                             <option value="Prata">Prata</option>
                             <option value="Cobre">Cobre</option>
+                        </optgroup>
+                        <optgroup label="Combinações (mescla de cores)">
+                            <option value="Off-white/Natural">Off-white/Natural</option>
+                            <option value="Off-white/Amêndoa">Off-white/Amêndoa</option>
+                            <option value="Off-white/Carvalho">Off-white/Carvalho</option>
+                            <option value="Off-white/Freijó">Off-white/Freijó</option>
+                            <option value="Off-white/Preto">Off-white/Preto</option>
+                            <option value="Branco/Preto">Branco/Preto</option>
+                            <option value="Branco/Natural">Branco/Natural</option>
+                            <option value="Cinza/Off-white">Cinza/Off-white</option>
+                            <option value="Grafite/Off-white">Grafite/Off-white</option>
+                            <option value="Preto/Dourado">Preto/Dourado</option>
+                            <option value="Nogueira/Off-white">Nogueira/Off-white</option>
+                            <option value="Rosa/Off-white">Rosa/Off-white</option>
                         </optgroup>
                         <option value="Multicolor">Multicolor</option>
                         <option value="Outra">Outra</option>

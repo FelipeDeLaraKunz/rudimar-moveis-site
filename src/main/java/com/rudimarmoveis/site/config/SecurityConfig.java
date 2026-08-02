@@ -11,6 +11,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
  * So existe UM usuario no sistema: o administrador da loja.
@@ -25,6 +26,12 @@ public class SecurityConfig {
 
     @Value("${admin.password}")
     private String adminPassword;
+
+    private final RateLimitFilter rateLimitFilter;
+
+    public SecurityConfig(RateLimitFilter rateLimitFilter) {
+        this.rateLimitFilter = rateLimitFilter;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -44,10 +51,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            // /api/** e chamado por automacoes externas (ex: n8n), sem sessao de navegador,
-            // entao nao tem como enviar o token CSRF do formulario. A autenticacao dessa rota
-            // e feita por chave (X-Api-Key) dentro do proprio controller.
-            .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
+            .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth
                 // pagina publica, css e imagens: liberado para todo mundo
                 .requestMatchers("/", "/css/**", "/img/**", "/webjars/**").permitAll()

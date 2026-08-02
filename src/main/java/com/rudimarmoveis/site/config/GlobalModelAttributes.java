@@ -20,6 +20,9 @@ public class GlobalModelAttributes {
     @Value("${loja.whatsapp}")
     private String lojaWhatsapp;
 
+    @Value("${loja.email}")
+    private String lojaEmail;
+
     @Value("${loja.telefone-exibicao}")
     private String lojaTelefoneExibicao;
 
@@ -47,6 +50,11 @@ public class GlobalModelAttributes {
     @ModelAttribute("lojaWhatsapp")
     public String lojaWhatsapp() {
         return lojaWhatsapp;
+    }
+
+    @ModelAttribute("lojaEmail")
+    public String lojaEmail() {
+        return lojaEmail;
     }
 
     @ModelAttribute("lojaTelefoneExibicao")

@@ -5,17 +5,17 @@ import java.time.LocalDate;
 
 /**
  * Vincula um produto a promocao ativa que da o melhor desconto para ele, com o preco
- * promocional ja calculado. Usada apenas para exibicao (cards, pagina de detalhe, etc.),
- * montada em tempo de requisicao pelo PromocaoService.
+ * promocional (a vista e no cartao) ja resolvido. Usada apenas para exibicao (cards,
+ * pagina de detalhe, etc.), montada em tempo de requisicao pelo PromocaoService.
  */
 public class PromocaoProdutoInfo {
 
     private final Promocao promocao;
-    private final BigDecimal precoPromocional;
+    private final PrecoPromocional precos;
 
-    public PromocaoProdutoInfo(Promocao promocao, BigDecimal precoPromocional) {
+    public PromocaoProdutoInfo(Promocao promocao, PrecoPromocional precos) {
         this.promocao = promocao;
-        this.precoPromocional = precoPromocional;
+        this.precos = precos;
     }
 
     public Long getPromocaoId() {
@@ -30,8 +30,20 @@ public class PromocaoProdutoInfo {
         return promocao.getPercentualDesconto();
     }
 
+    public String getCor() {
+        return promocao.getCor();
+    }
+
     public BigDecimal getPrecoPromocional() {
-        return precoPromocional;
+        return precos.getPrecoPromocional();
+    }
+
+    public BigDecimal getPrecoPromocionalCartao() {
+        return precos.getPrecoPromocionalCartao();
+    }
+
+    public BigDecimal getParcela10x() {
+        return precos.getParcela10x();
     }
 
     public LocalDate getValidaAte() {

@@ -11,10 +11,8 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 
 /**
- * Baixa uma imagem de uma URL externa (usado pelo admin ao colar um link de foto,
- * e pela API de automacao/n8n ao criar produtos com imagens ja encontradas por fora).
- * Centraliza aqui a validacao de SSRF e os limites de tamanho/tipo, pra nao duplicar
- * essa logica sensivel em mais de um lugar.
+ * Baixa uma imagem de uma URL externa (usado pelo admin ao colar um link de foto no
+ * cadastro de produto). Centraliza aqui a validacao de SSRF e os limites de tamanho/tipo.
  */
 @Service
 public class ImagemExternaService {
@@ -50,21 +48,6 @@ public class ImagemExternaService {
         }
 
         return new ImagemBaixada(resposta.body(), tipoConteudo);
-    }
-
-    /** Deriva uma extensao de arquivo (com ponto) a partir do Content-Type retornado. */
-    public String extensaoPorContentType(String contentType) {
-        if (contentType == null) {
-            return "";
-        }
-        String subtipo = contentType.split("/")[contentType.contains("/") ? 1 : 0].split("\\+")[0].trim();
-        return switch (subtipo) {
-            case "jpeg", "jpg" -> ".jpg";
-            case "png" -> ".png";
-            case "webp" -> ".webp";
-            case "gif" -> ".gif";
-            default -> "";
-        };
     }
 
     // aceita so http/https e bloqueia enderecos internos/privados, para evitar que esse

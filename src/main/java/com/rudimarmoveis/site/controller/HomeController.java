@@ -1,5 +1,6 @@
 package com.rudimarmoveis.site.controller;
 
+import com.rudimarmoveis.site.model.PrecoPromocional;
 import com.rudimarmoveis.site.model.Produto;
 import com.rudimarmoveis.site.model.Promocao;
 import com.rudimarmoveis.site.model.PromocaoProdutoInfo;
@@ -12,7 +13,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -123,8 +123,8 @@ public class HomeController {
 
         Map<Long, PromocaoProdutoInfo> promoPorProduto = new HashMap<>();
         for (Produto produto : produtos) {
-            BigDecimal precoPromocional = promocao.getPrecosPromocionais().get(produto.getId());
-            promoPorProduto.put(produto.getId(), new PromocaoProdutoInfo(promocao, precoPromocional));
+            PrecoPromocional precos = promocao.getPrecosPromocionais().get(produto.getId());
+            promoPorProduto.put(produto.getId(), new PromocaoProdutoInfo(promocao, precos));
         }
 
         model.addAttribute("promocao", promocao);

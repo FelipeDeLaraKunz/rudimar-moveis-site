@@ -1,11 +1,11 @@
 package com.rudimarmoveis.site.service;
 
+import com.rudimarmoveis.site.model.PrecoPromocional;
 import com.rudimarmoveis.site.model.Promocao;
 import com.rudimarmoveis.site.model.PromocaoProdutoInfo;
 import com.rudimarmoveis.site.repository.PromocaoRepository;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +31,7 @@ public class PromocaoService {
     public Map<Long, PromocaoProdutoInfo> mapearPorProduto(List<Promocao> promocoesValidas) {
         Map<Long, PromocaoProdutoInfo> mapa = new HashMap<>();
         for (Promocao promocao : promocoesValidas) {
-            for (Map.Entry<Long, BigDecimal> entry : promocao.getPrecosPromocionais().entrySet()) {
+            for (Map.Entry<Long, PrecoPromocional> entry : promocao.getPrecosPromocionais().entrySet()) {
                 Long produtoId = entry.getKey();
                 PromocaoProdutoInfo candidata = new PromocaoProdutoInfo(promocao, entry.getValue());
                 PromocaoProdutoInfo existente = mapa.get(produtoId);

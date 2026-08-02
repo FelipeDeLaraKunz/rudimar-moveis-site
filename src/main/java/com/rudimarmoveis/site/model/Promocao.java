@@ -2,9 +2,9 @@ package com.rudimarmoveis.site.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -39,13 +39,18 @@ public class Promocao {
     @Column(nullable = false)
     private boolean ativo = true;
 
-    // Produtos participantes da promocao e o preco promocional definido para cada um
-    // (o preco normal do produto, em Produto.preco, nunca e alterado por aqui)
+    // Cor de destaque dessa promocao no site (selo, preco riscado, timer, banner).
+    // Formato hexadecimal (#rrggbb), escolhida no admin via <input type="color">.
+    @Pattern(regexp = "^#[0-9A-Fa-f]{6}$", message = "Cor invalida")
+    @Column(nullable = false, length = 7)
+    private String cor = "#C1440E";
+
+    // Produtos participantes da promocao e o preco promocional (a vista + cartao) de cada um
+    // (o preco normal do produto, em Produto.preco/precoCartao, nunca e alterado por aqui)
     @ElementCollection
     @CollectionTable(name = "promocao_produtos", joinColumns = @JoinColumn(name = "promocao_id"))
     @MapKeyColumn(name = "produto_id")
-    @Column(name = "preco_promocional", nullable = false)
-    private Map<Long, BigDecimal> precosPromocionais = new LinkedHashMap<>();
+    private Map<Long, PrecoPromocional> precosPromocionais = new LinkedHashMap<>();
 
     public Promocao() {
     }
@@ -106,11 +111,19 @@ public class Promocao {
         this.ativo = ativo;
     }
 
-    public Map<Long, BigDecimal> getPrecosPromocionais() {
+    public String getCor() {
+        return cor;
+    }
+
+    public void setCor(String cor) {
+        this.cor = cor;
+    }
+
+    public Map<Long, PrecoPromocional> getPrecosPromocionais() {
         return precosPromocionais;
     }
 
-    public void setPrecosPromocionais(Map<Long, BigDecimal> precosPromocionais) {
+    public void setPrecosPromocionais(Map<Long, PrecoPromocional> precosPromocionais) {
         this.precosPromocionais = precosPromocionais;
     }
 
