@@ -25,12 +25,14 @@ import java.util.concurrent.atomic.AtomicInteger;
  * - geral (qualquer request): um limite mais alto, so para o servidor nao cair
  *   se alguem disparar uma rajada grande de requisicoes.
  *
- * O IP usado e sempre o da conexao TCP (request.getRemoteAddr()) - de proposito NAO
- * confiamos em cabecalhos como X-Forwarded-For aqui, porque sao enviados pelo proprio
- * cliente: se essa aplicacao um dia ficar atras de um proxy/load balancer confiavel,
- * a extracao do IP real deve ser feita via configuracao do proxy (ex.: RemoteIpValve/
- * ForwardedHeaderFilter), nunca lendo o header diretamente, senao o rate limit de
- * login vira inutil (bastaria variar o header a cada tentativa para escapar dele).
+ * O IP usado e sempre o de request.getRemoteAddr() - de proposito este filtro NAO le
+ * cabecalhos como X-Forwarded-For diretamente, porque sao enviados pelo proprio cliente
+ * e poderiam ser forjados para escapar do rate limit (bastaria variar o header a cada
+ * tentativa de login). Como a aplicacao roda atras do Nginx da VPS, quem "confia" no
+ * X-Forwarded-For e o RemoteIpValve do Tomcat (ativado via
+ * server.forward-headers-strategy=native no application.properties), que so aceita o
+ * header quando a conexao chega de um IP interno/privado (rede do Docker) e reescreve
+ * getRemoteAddr() com o IP real do visitante antes de chegar aqui.
  */
 @Component
 public class RateLimitFilter extends HttpFilter {
