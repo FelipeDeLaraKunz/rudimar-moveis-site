@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -22,8 +23,12 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Duas regras:
  * - login (/admin/login via POST): poucas tentativas por minuto, para dificultar
  *   um script tentando adivinhar a senha do admin por forca bruta.
- * - geral (qualquer request): um limite mais alto, so para o servidor nao cair
- *   se alguem disparar uma rajada grande de requisicoes.
+ * - geral (paginas/acoes dinamicas): um limite mais alto, so para o servidor nao cair
+ *   se alguem disparar uma rajada grande de requisicoes. Assets estaticos (css/js/fotos
+ *   de produto em /uploads) NAO entram nessa conta - uma unica pagina de catalogo ja
+ *   carrega dezenas de fotos, e como varios dispositivos na mesma rede/Wi-Fi aparecem
+ *   com o mesmo IP publico (NAT do roteador), contar cada asset gerava bloqueio de
+ *   gente normal navegando junto, sem ninguem de fato abusando.
  *
  * O IP usado e sempre o de request.getRemoteAddr() - de proposito este filtro NAO le
  * cabecalhos como X-Forwarded-For diretamente, porque sao enviados pelo proprio cliente
@@ -44,6 +49,9 @@ public class RateLimitFilter extends HttpFilter {
     private static final int LIMITE_GERAL = 300;
 
     private static final long MAX_IDADE_SEM_USO_MS = JANELA_GERAL_MS * 10;
+
+    private static final List<String> PREFIXOS_ESTATICOS =
+            List.of("/css/", "/js/", "/img/", "/uploads/", "/webjars/");
 
     private final Map<String, Contador> contadoresLogin = new ConcurrentHashMap<>();
     private final Map<String, Contador> contadoresGerais = new ConcurrentHashMap<>();
@@ -70,7 +78,7 @@ public class RateLimitFilter extends HttpFilter {
             }
         }
 
-        if (!permitir(contadoresGerais, ip, JANELA_GERAL_MS, LIMITE_GERAL)) {
+        if (!isRecursoEstatico(request) && !permitir(contadoresGerais, ip, JANELA_GERAL_MS, LIMITE_GERAL)) {
             responder429(response, "Muitas requisicoes. Aguarde um instante e tente novamente.");
             return;
         }
@@ -81,6 +89,11 @@ public class RateLimitFilter extends HttpFilter {
     private boolean isTentativaDeLogin(HttpServletRequest request) {
         return "POST".equalsIgnoreCase(request.getMethod())
                 && (request.getContextPath() + "/admin/login").equals(request.getRequestURI());
+    }
+
+    private boolean isRecursoEstatico(HttpServletRequest request) {
+        String caminho = request.getRequestURI().substring(request.getContextPath().length());
+        return PREFIXOS_ESTATICOS.stream().anyMatch(caminho::startsWith);
     }
 
     private boolean permitir(Map<String, Contador> contadores, String ip, long janelaMs, int limite) {
