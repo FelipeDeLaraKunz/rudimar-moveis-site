@@ -147,41 +147,43 @@
             </select>
         </div>
 
-        <table class="admin-table" id="tabelaPromocoes" th:if="${!promocoes.isEmpty()}">
-            <thead>
-            <tr>
-                <th>Título</th>
-                <th>Desconto</th>
-                <th>Produtos</th>
-                <th>Válida até</th>
-                <th>Status</th>
-                <th>Ações</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="promo : ${promocoes}"
-                th:data-busca="${#strings.toLowerCase(promo.titulo)}"
-                th:data-status="${!promo.ativo ? 'oculta' : (promo.validaAgora ? 'visivel' : 'expirada')}">
-                <td th:text="${promo.titulo}"></td>
-                <td th:text="${promo.percentualDesconto != null ? promo.percentualDesconto + '%' : 'Variado'}"></td>
-                <td th:text="${nomesPorPromocao.get(promo.id) ?: '-'}"></td>
-                <td th:text="${promo.validaAte != null ? #temporals.format(promo.validaAte, 'dd/MM/yyyy') : '-'}"></td>
-                <td>
-                    <span th:if="${!promo.ativo}" class="badge-inativo">Oculta</span>
-                    <span th:if="${promo.ativo and !promo.validaAgora}" class="badge-inativo">Expirada</span>
-                    <span th:if="${promo.ativo and promo.validaAgora}" style="font-size:12px; color: var(--sage);">Visível</span>
-                </td>
-                <td class="row-actions">
-                    <a th:if="${promo.validaAgora}" th:href="@{/promocoes/{id}(id=${promo.id})}" target="_blank">Ver</a>
-                    <a th:href="@{/admin/promocoes/{id}/editar(id=${promo.id})}">Editar</a>
-                    <form th:action="@{/admin/promocoes/{id}/excluir(id=${promo.id})}" method="post" style="display:inline;"
-                          onsubmit="return confirm('Tem certeza que deseja excluir esta promoção?');">
-                        <button type="submit" class="excluir">Excluir</button>
-                    </form>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+        <div class="tabela-scroll" th:if="${!promocoes.isEmpty()}">
+            <table class="admin-table" id="tabelaPromocoes">
+                <thead>
+                <tr>
+                    <th>Título</th>
+                    <th>Desconto</th>
+                    <th>Produtos</th>
+                    <th>Válida até</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="promo : ${promocoes}"
+                    th:data-busca="${#strings.toLowerCase(promo.titulo)}"
+                    th:data-status="${!promo.ativo ? 'oculta' : (promo.validaAgora ? 'visivel' : 'expirada')}">
+                    <td th:text="${promo.titulo}"></td>
+                    <td th:text="${promo.percentualDesconto != null ? promo.percentualDesconto + '%' : 'Variado'}"></td>
+                    <td th:text="${nomesPorPromocao.get(promo.id) ?: '-'}"></td>
+                    <td th:text="${promo.validaAte != null ? #temporals.format(promo.validaAte, 'dd/MM/yyyy') : '-'}"></td>
+                    <td>
+                        <span th:if="${!promo.ativo}" class="badge-inativo">Oculta</span>
+                        <span th:if="${promo.ativo and !promo.validaAgora}" class="badge-inativo">Expirada</span>
+                        <span th:if="${promo.ativo and promo.validaAgora}" style="font-size:12px; color: var(--sage);">Visível</span>
+                    </td>
+                    <td class="row-actions">
+                        <a th:if="${promo.validaAgora}" th:href="@{/promocoes/{id}(id=${promo.id})}" target="_blank">Ver</a>
+                        <a th:href="@{/admin/promocoes/{id}/editar(id=${promo.id})}">Editar</a>
+                        <form th:action="@{/admin/promocoes/{id}/excluir(id=${promo.id})}" method="post" style="display:inline;"
+                              onsubmit="return confirm('Tem certeza que deseja excluir esta promoção?');">
+                            <button type="submit" class="excluir">Excluir</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
         <p id="filtroPromoVazio" class="empty-msg" style="display:none;">Nenhuma promoção encontrada.</p>
         <p th:if="${promocoes.isEmpty()}" class="empty-msg">Nenhuma promoção cadastrada ainda.</p>
     </div>

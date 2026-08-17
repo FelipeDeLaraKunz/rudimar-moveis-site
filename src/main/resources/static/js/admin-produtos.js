@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   configurarUploadFotos();
+  configurarCorPersonalizada();
 
   var tabela = document.getElementById('tabelaProdutos');
   if (!tabela) {
@@ -252,6 +253,91 @@ function configurarUploadFotos() {
       item.appendChild(img);
       item.appendChild(botaoRemover);
       preview.appendChild(item);
+    });
+  }
+}
+
+// Permite digitar uma cor que nao esta na lista pronta: ao escolher "Outra (digitar)"
+// no select, aparece um campo de texto, e o valor digitado vira uma option nova no
+// select na hora de enviar o formulario (assim continua sendo so um campo de texto no
+// banco, sem precisar mudar nada no back-end).
+function configurarCorPersonalizada() {
+  var selectCor = document.getElementById('cor');
+  var inputCorOutra = document.getElementById('corOutraInput');
+  var campoCorAtual = document.getElementById('corAtual');
+
+  if (!selectCor || !inputCorOutra) {
+    return;
+  }
+
+  var OPCAO_OUTRA = 'Outra';
+  var form = selectCor.closest('form');
+
+  function valoresPredefinidos() {
+    return Array.prototype.map.call(selectCor.options, function (opcao) {
+      return opcao.value;
+    });
+  }
+
+  function removerOpcaoPersonalizada() {
+    var existente = selectCor.querySelector('option[data-personalizada="true"]');
+    if (existente) {
+      existente.remove();
+    }
+  }
+
+  function mostrarCampoTexto(valorInicial) {
+    inputCorOutra.hidden = false;
+    inputCorOutra.value = valorInicial || '';
+  }
+
+  function esconderCampoTexto() {
+    inputCorOutra.hidden = true;
+    inputCorOutra.value = '';
+    inputCorOutra.setCustomValidity('');
+  }
+
+  // se o produto ja tem uma cor salva que nao esta na lista pronta (foi digitada antes),
+  // seleciona "Outra" e mostra o valor real no campo de texto.
+  if (campoCorAtual && campoCorAtual.value && valoresPredefinidos().indexOf(campoCorAtual.value) === -1) {
+    selectCor.value = OPCAO_OUTRA;
+    mostrarCampoTexto(campoCorAtual.value);
+  } else if (selectCor.value === OPCAO_OUTRA) {
+    mostrarCampoTexto('');
+  } else {
+    esconderCampoTexto();
+  }
+
+  selectCor.addEventListener('change', function () {
+    removerOpcaoPersonalizada();
+    if (selectCor.value === OPCAO_OUTRA) {
+      mostrarCampoTexto('');
+      inputCorOutra.focus();
+    } else {
+      esconderCampoTexto();
+    }
+  });
+
+  if (form) {
+    form.addEventListener('submit', function (evento) {
+      if (selectCor.value !== OPCAO_OUTRA) {
+        return;
+      }
+      var texto = inputCorOutra.value.trim();
+      if (!texto) {
+        evento.preventDefault();
+        inputCorOutra.setCustomValidity('Digite o nome da cor.');
+        inputCorOutra.reportValidity();
+        return;
+      }
+      inputCorOutra.setCustomValidity('');
+      removerOpcaoPersonalizada();
+      var opcaoPersonalizada = document.createElement('option');
+      opcaoPersonalizada.value = texto;
+      opcaoPersonalizada.textContent = texto;
+      opcaoPersonalizada.dataset.personalizada = 'true';
+      selectCor.appendChild(opcaoPersonalizada);
+      selectCor.value = texto;
     });
   }
 }

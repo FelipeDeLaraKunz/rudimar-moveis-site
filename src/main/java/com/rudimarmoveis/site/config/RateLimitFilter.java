@@ -39,7 +39,7 @@ public class RateLimitFilter extends HttpFilter {
     private static final int LIMITE_LOGIN = 5;
 
     private static final long JANELA_GERAL_MS = 60_000;
-    private static final int LIMITE_GERAL = 120;
+    private static final int LIMITE_GERAL = 300;
 
     private static final long MAX_IDADE_SEM_USO_MS = JANELA_GERAL_MS * 10;
 

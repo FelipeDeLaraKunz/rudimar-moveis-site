@@ -99,9 +99,10 @@
                                 <option value="Colchão">Colchão</option>
                                 <option value="Guarda-roupa/Roupeiro">Guarda-roupa/Roupeiro</option>
                                 <option value="Cômoda">Cômoda</option>
-                                <option value="Criado-mudo">Criado-mudo</option>
+                                <option value="Mesa de cabeceira">Mesa de cabeceira</option>
                                 <option value="Escrivaninha">Escrivaninha</option>
                                 <option value="Penteadeira">Penteadeira</option>
+                                <option value="Multiuso/Organizador">Multiuso/Organizador</option>
                             </optgroup>
                             <optgroup label="Cozinha">
                                 <option value="Armário de cozinha">Armário de cozinha</option>
@@ -282,8 +283,10 @@
                             </optgroup>
                             <option value="Multicolor">Multicolor</option>
                             <option value="Estampado">Estampado</option>
-                            <option value="Outra">Outra</option>
+                            <option value="Outra">Outra (digitar)</option>
                         </select>
+                        <input type="hidden" id="corAtual" th:value="*{cor}">
+                        <input type="text" id="corOutraInput" placeholder="Digite o nome da cor" hidden>
                     </div>
 
                     <div class="form-field">
@@ -393,55 +396,57 @@
                 </select>
             </div>
 
-            <table class="admin-table" id="tabelaProdutos" th:if="${!produtos.isEmpty()}">
-                <thead>
-                    <tr>
-                        <th>Foto</th>
-                        <th>Nome (interno)</th>
-                        <th>Nome (cliente)</th>
-                        <th>Categoria</th>
-                        <th>Marca</th>
-                        <th>Cor</th>
-                        <th>Preço</th>
-                        <th>Estoque</th>
-                        <th>Na home</th>
-                        <th>Status</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="p : ${produtos}"
-                        th:data-busca="${#strings.toLowerCase((p.nomeInterno ?: '') + ' ' + (p.nome ?: '') + ' ' + (p.descricao ?: '') + ' ' + (p.marca ?: '') + ' ' + (p.categoria ?: '') + ' ' + (p.cor ?: ''))}"
-                        th:data-categoria="${p.categoria ?: ''}" th:data-marca="${p.marca ?: ''}"
-                        th:data-cor="${p.cor ?: ''}" th:data-status="${p.ativo ? 'visivel' : 'oculto'}">
-                        <td><img th:if="${p.imagemPrincipal}" th:src="${p.imagemPrincipal}" class="thumb"
-                                th:alt="${p.nome}"></td>
-                        <td th:text="${p.nomeInterno}"></td>
-                        <td th:text="${p.nome}"></td>
-                        <td th:text="${p.categoria}"></td>
-                        <td th:text="${p.marca}"></td>
-                        <td th:text="${p.cor}"></td>
-                        <td th:text="'R$ ' + ${#numbers.formatDecimal(p.preco, 1, 'POINT', 2, 'COMMA')}"></td>
-                        <td th:text="${p.quantidadeEstoque}"></td>
-                        <td>
-                            <span th:if="${p.destaque}" style="font-size:12px; color: var(--sage);">Sim</span>
-                            <span th:unless="${p.destaque}" style="font-size:12px; color: var(--ink-soft);">Não</span>
-                        </td>
-                        <td>
-                            <span th:unless="${p.ativo}" class="badge-inativo">Oculto</span>
-                            <span th:if="${p.ativo}" style="font-size:12px; color: var(--sage);">Visível</span>
-                        </td>
-                        <td class="row-actions">
-                            <a th:href="@{/admin/produtos/{id}/editar(id=${p.id})}">Editar</a>
-                            <form th:action="@{/admin/produtos/{id}/excluir(id=${p.id})}" method="post"
-                                style="display:inline;"
-                                onsubmit="return confirm('Tem certeza que deseja excluir este produto?');">
-                                <button type="submit" class="excluir">Excluir</button>
-                            </form>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="tabela-scroll" th:if="${!produtos.isEmpty()}">
+                <table class="admin-table" id="tabelaProdutos">
+                    <thead>
+                        <tr>
+                            <th>Foto</th>
+                            <th>Nome (interno)</th>
+                            <th>Nome (cliente)</th>
+                            <th>Categoria</th>
+                            <th>Marca</th>
+                            <th>Cor</th>
+                            <th>Preço</th>
+                            <th>Estoque</th>
+                            <th>Na home</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="p : ${produtos}"
+                            th:data-busca="${#strings.toLowerCase((p.nomeInterno ?: '') + ' ' + (p.nome ?: '') + ' ' + (p.descricao ?: '') + ' ' + (p.marca ?: '') + ' ' + (p.categoria ?: '') + ' ' + (p.cor ?: ''))}"
+                            th:data-categoria="${p.categoria ?: ''}" th:data-marca="${p.marca ?: ''}"
+                            th:data-cor="${p.cor ?: ''}" th:data-status="${p.ativo ? 'visivel' : 'oculto'}">
+                            <td><img th:if="${p.imagemPrincipal}" th:src="${p.imagemPrincipal}" class="thumb"
+                                    th:alt="${p.nome}"></td>
+                            <td th:text="${p.nomeInterno}"></td>
+                            <td th:text="${p.nome}"></td>
+                            <td th:text="${p.categoria}"></td>
+                            <td th:text="${p.marca}"></td>
+                            <td th:text="${p.cor}"></td>
+                            <td th:text="'R$ ' + ${#numbers.formatDecimal(p.preco, 1, 'POINT', 2, 'COMMA')}"></td>
+                            <td th:text="${p.quantidadeEstoque}"></td>
+                            <td>
+                                <span th:if="${p.destaque}" style="font-size:12px; color: var(--sage);">Sim</span>
+                                <span th:unless="${p.destaque}" style="font-size:12px; color: var(--ink-soft);">Não</span>
+                            </td>
+                            <td>
+                                <span th:unless="${p.ativo}" class="badge-inativo">Oculto</span>
+                                <span th:if="${p.ativo}" style="font-size:12px; color: var(--sage);">Visível</span>
+                            </td>
+                            <td class="row-actions">
+                                <a th:href="@{/admin/produtos/{id}/editar(id=${p.id})}">Editar</a>
+                                <form th:action="@{/admin/produtos/{id}/excluir(id=${p.id})}" method="post"
+                                    style="display:inline;"
+                                    onsubmit="return confirm('Tem certeza que deseja excluir este produto?');">
+                                    <button type="submit" class="excluir">Excluir</button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
             <p id="filtroVazio" class="empty-msg" style="display:none;">Nenhum produto encontrado com esses filtros.</p>
             <p th:if="${produtos.isEmpty()}" class="empty-msg">Nenhum produto cadastrado ainda.</p>
         </div>
