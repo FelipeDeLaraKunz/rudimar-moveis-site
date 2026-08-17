@@ -31,6 +31,10 @@
         <a th:href="@{/admin/promocoes(novo=true)}" class="btn-admin">+ Nova promoção</a>
     </div>
 
+    <div class="admin-alerta admin-alerta-erro" th:if="${erroUpload != null}">
+        <span th:text="${erroUpload}"></span>
+    </div>
+
     <dialog id="promocaoModal" class="modal-produto" th:data-abrir="${abrirModal}">
         <div class="modal-produto-head">
             <h2 th:text="${promocao.id != null ? 'Editar promoção' : 'Nova promoção'}"></h2>

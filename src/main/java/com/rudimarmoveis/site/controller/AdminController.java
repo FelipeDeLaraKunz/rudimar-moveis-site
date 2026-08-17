@@ -7,6 +7,7 @@ import com.rudimarmoveis.site.repository.PromocaoRepository;
 import com.rudimarmoveis.site.service.ArmazenamentoImagensService;
 import com.rudimarmoveis.site.service.ImagemExternaService;
 import com.rudimarmoveis.site.service.PlanilhaEstoqueService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -18,6 +19,7 @@ import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -182,6 +184,18 @@ public class AdminController {
     }
 
     public record BaixarImagemRequest(String url) {
+    }
+
+    // sem isso, um upload que passa do limite configurado (multipart.max-request-size)
+    // vira um 403 generico e confuso, em vez de avisar o admin que o(s) arquivo(s) sao
+    // grandes demais - ver comentario no application.properties (resolve-lazily) para
+    // o motivo do 403.
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public String tratarUploadGrandeDemais(HttpServletRequest request, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("erroUpload",
+                "O(s) arquivo(s) enviado(s) sao grandes demais. Tente enviar fotos menores ou em menor quantidade de cada vez.");
+        String destino = request.getRequestURI().contains("/promocoes") ? "/admin/promocoes" : "/admin/produtos";
+        return "redirect:" + destino;
     }
 
     // ---------- PROMOCOES ----------

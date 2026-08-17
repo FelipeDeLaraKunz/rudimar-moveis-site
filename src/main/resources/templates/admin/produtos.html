@@ -53,6 +53,9 @@
         <div class="admin-alerta admin-alerta-erro" th:if="${erroImportacao != null}">
             <span th:text="${erroImportacao}"></span>
         </div>
+        <div class="admin-alerta admin-alerta-erro" th:if="${erroUpload != null}">
+            <span th:text="${erroUpload}"></span>
+        </div>
 
         <dialog id="produtoModal" class="modal-produto" th:data-abrir="${abrirModal}">
             <div class="modal-produto-head">
@@ -61,6 +64,10 @@
             </div>
             <form th:action="@{/admin/produtos}" th:object="${produto}" method="post" enctype="multipart/form-data">
                 <input type="hidden" th:field="*{id}">
+                <!-- campo "destaque" nao tem mais controle na UI (nao influencia o que aparece na home,
+                     que hoje mostra amostra aleatoria dos produtos ativos) - mantido oculto so pra nao
+                     zerar o valor de produtos existentes ao salvar uma edicao. -->
+                <input type="hidden" th:field="*{destaque}">
                 <div class="form-grid">
                     <div class="form-field">
                         <label for="nomeInterno">Nome interno (técnico, só aparece aqui no admin)</label>
@@ -320,14 +327,6 @@
                     </div>
 
                     <div class="form-field">
-                        <label for="destaque">Mostrar na página inicial</label>
-                        <select id="destaque" th:field="*{destaque}">
-                            <option value="true">Sim</option>
-                            <option value="false">Não</option>
-                        </select>
-                    </div>
-
-                    <div class="form-field">
                         <label for="ativo">Visível no site</label>
                         <select id="ativo" th:field="*{ativo}">
                             <option value="true">Sim</option>
@@ -413,7 +412,6 @@
                             <th>Cor</th>
                             <th>Preço</th>
                             <th>Estoque</th>
-                            <th>Na home</th>
                             <th>Status</th>
                             <th>Ações</th>
                         </tr>
@@ -432,10 +430,6 @@
                             <td th:text="${p.cor}"></td>
                             <td th:text="'R$ ' + ${#numbers.formatDecimal(p.preco, 1, 'POINT', 2, 'COMMA')}"></td>
                             <td th:text="${p.quantidadeEstoque}"></td>
-                            <td>
-                                <span th:if="${p.destaque}" style="font-size:12px; color: var(--sage);">Sim</span>
-                                <span th:unless="${p.destaque}" style="font-size:12px; color: var(--ink-soft);">Não</span>
-                            </td>
                             <td>
                                 <span th:unless="${p.ativo}" class="badge-inativo">Oculto</span>
                                 <span th:if="${p.ativo}" style="font-size:12px; color: var(--sage);">Visível</span>

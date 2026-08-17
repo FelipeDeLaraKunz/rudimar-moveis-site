@@ -984,6 +984,16 @@ a {
   margin: 0 0 14px;
 }
 
+/* Na home os cards ficam mais apertados (vitrine/carrossel), entao a descricao e
+   cortada em 2 linhas - so aqui, o catalogo e a pagina de promocao continuam mostrando
+   a descricao inteira. */
+.pagina-home .produto-info p.descricao {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 .produto-preco {
   font-family: var(--font-tag);
   font-size: 20px;
