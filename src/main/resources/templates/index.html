@@ -31,15 +31,11 @@
     </div>
 </section>
 
-<section class="section" id="promocoes">
+<section class="section" id="promocoes" th:if="${!promocoes.isEmpty()}">
     <div class="container">
         <div class="section-head">
             <h2>Promoções deste mês</h2>
-            <p th:if="${!promocoes.isEmpty()}" th:text="${promocoes.size()} + ' oferta(s) ativa(s)'"></p>
-        </div>
-
-        <div th:if="${promocoes.isEmpty()}" class="empty-msg">
-            Nenhuma promoção ativa no momento. Volte em breve!
+            <p th:text="${promocoes.size()} + ' oferta(s) ativa(s)'"></p>
         </div>
 
         <div class="promo-bloco" th:each="promo : ${promocoes}">
@@ -80,10 +76,16 @@
             Ainda não ha produtos cadastrados.
         </div>
 
-        <div class="produtos-grid" th:unless="${produtos.isEmpty()}">
-            <th:block th:each="produto : ${produtos}">
-                <div th:replace="~{fragments/produto-card :: card(${produto}, ${promoPorProduto.get(produto.id)})}"></div>
-            </th:block>
+        <div class="vitrine-carousel" th:unless="${produtos.isEmpty()}">
+            <button type="button" class="vitrine-seta vitrine-seta-prev" id="vitrinePrev" aria-label="Produtos anteriores">&#8249;</button>
+            <div class="vitrine-carousel-track" id="vitrineTrack">
+                <th:block th:each="produto : ${produtos}">
+                    <div class="vitrine-slide">
+                        <div th:replace="~{fragments/produto-card :: card(${produto}, ${promoPorProduto.get(produto.id)})}"></div>
+                    </div>
+                </th:block>
+            </div>
+            <button type="button" class="vitrine-seta vitrine-seta-next" id="vitrineNext" aria-label="Próximos produtos">&#8250;</button>
         </div>
 
         <div style="text-align: center; margin-top: 28px;">
@@ -161,5 +163,6 @@
 
 <script th:src="@{/js/header.js}" defer></script>
 <script th:src="@{/js/promo-timer.js}" defer></script>
+<script th:src="@{/js/vitrine-carousel.js}" defer></script>
 </body>
 </html>

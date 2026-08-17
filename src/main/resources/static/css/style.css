@@ -997,6 +997,67 @@ a {
   gap: 2px;
 }
 
+/* ---------- Carrossel "Nossos produtos" (home) ---------- */
+
+.vitrine-carousel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.vitrine-carousel-track {
+  flex: 1;
+  display: flex;
+  gap: 24px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  padding: 4px 4px 14px;
+  scrollbar-width: none;
+  min-width: 0;
+}
+
+.vitrine-carousel-track::-webkit-scrollbar {
+  display: none;
+}
+
+.vitrine-slide {
+  flex: 0 0 260px;
+  scroll-snap-align: start;
+  display: flex;
+}
+
+.vitrine-slide .produto-card {
+  width: 100%;
+}
+
+.vitrine-seta {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.vitrine-seta:hover:not(:disabled) {
+  border-color: var(--wood);
+  background: var(--surface-warm);
+}
+
+.vitrine-seta:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
 /* ---------- Catalogo: busca em destaque + sidebar de filtros (estilo loja) ---------- */
 
 .catalogo-busca-destaque {
@@ -1504,6 +1565,15 @@ a {
   .produtos-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 14px;
+  }
+
+  /* ---- Carrossel da home: cards menores, sem as setas (rola com o dedo) ---- */
+  .vitrine-slide {
+    flex-basis: 200px;
+  }
+
+  .vitrine-seta {
+    display: none;
   }
 
   .produto-imagem {

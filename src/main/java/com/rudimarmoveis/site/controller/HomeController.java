@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +25,9 @@ import java.util.stream.Collectors;
 
 @Controller
 public class HomeController {
+
+    // quantos produtos aparecem no carrossel da home
+    private static final int QTD_VITRINE = 12;
 
     private final ProdutoRepository produtoRepository;
     private final PromocaoRepository promocaoRepository;
@@ -43,14 +47,20 @@ public class HomeController {
         Map<Long, PromocaoProdutoInfo> promoPorProduto = promocaoService.mapearPorProduto(promocoes);
         Map<Long, List<Produto>> produtosPorPromocao = produtosAtivosPorPromocao(promocoes);
 
-        long totalProdutosAtivos = produtoRepository.countByAtivoTrue();
-        List<Produto> vitrine = produtoRepository.findByAtivoTrueAndDestaqueTrueOrderByNomeAsc();
+        // vitrine da home: amostra aleatoria dos produtos ativos, pra mostrar variedade
+        // do catalogo a cada visita (nao so os mesmos produtos sempre)
+        List<Produto> ativos = produtoRepository.findByAtivoTrueOrderByNomeAsc();
+        List<Produto> vitrine = new ArrayList<>(ativos);
+        Collections.shuffle(vitrine);
+        if (vitrine.size() > QTD_VITRINE) {
+            vitrine = vitrine.subList(0, QTD_VITRINE);
+        }
 
         model.addAttribute("promocoes", promocoes);
         model.addAttribute("produtosPorPromocao", produtosPorPromocao);
         model.addAttribute("promoPorProduto", promoPorProduto);
         model.addAttribute("produtos", vitrine);
-        model.addAttribute("totalProdutosAtivos", totalProdutosAtivos);
+        model.addAttribute("totalProdutosAtivos", ativos.size());
         return "index";
     }
 
