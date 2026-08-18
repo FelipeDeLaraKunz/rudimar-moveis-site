@@ -11,11 +11,26 @@ document.addEventListener('DOMContentLoaded', function () {
   var semResultado = document.getElementById('catalogoNoResults');
   var contagem = document.getElementById('catalogoContagem');
   var botaoLimpar = document.getElementById('limparFiltros');
+  var botaoExibirMais = document.getElementById('catalogoExibirMais');
+
+  // com filtro nenhum aplicado, mostra so um lote de cards por vez (o resto ja esta no
+  // HTML, so escondido) - poupa o carregamento das fotos que estao fora da tela, que e
+  // o que mais pesa numa pagina de catalogo. Assim que algum filtro entra em jogo, mostra
+  // todos os produtos que combinam, sem paginacao.
+  var LOTE = 24;
+  var revelados = LOTE;
 
   var checkboxCategoria = Array.prototype.slice.call(document.querySelectorAll('input[name="filtroCategoria"]'));
+  var checkboxTamanho = Array.prototype.slice.call(document.querySelectorAll('input[name="filtroTamanho"]'));
   var checkboxMarca = Array.prototype.slice.call(document.querySelectorAll('input[name="filtroMarca"]'));
   var checkboxCor = Array.prototype.slice.call(document.querySelectorAll('input[name="filtroCor"]'));
-  var todosCheckbox = checkboxCategoria.concat(checkboxMarca, checkboxCor);
+  var todosCheckbox = checkboxCategoria.concat(checkboxTamanho, checkboxMarca, checkboxCor);
+  var grupoTamanho = document.getElementById('filtroTamanhoGrupo');
+
+  // so categorias que costumam variar por tamanho mostram o filtro de Tamanho - mantido em
+  // sincronia manualmente com CategoriasCatalogo.CATEGORIAS_COM_TAMANHO (Java) e a mesma
+  // lista em admin-produtos.js
+  var CATEGORIAS_COM_TAMANHO = ['Cama', 'Conjunto box', 'Colchão'];
 
   function valoresMarcados(inputs) {
     return inputs.filter(function (input) {
@@ -25,34 +40,67 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  // mostra o filtro de Tamanho so quando alguma categoria marcada costuma variar por
+  // tamanho; ao esconder, desmarca as opcoes de tamanho pra nao deixar um filtro invisivel ativo
+  function atualizarFiltroTamanho(categorias) {
+    if (!grupoTamanho) return false;
+
+    var mostrar = categorias.some(function (c) {
+      return CATEGORIAS_COM_TAMANHO.indexOf(c) !== -1;
+    });
+    grupoTamanho.hidden = !mostrar;
+    if (!mostrar) {
+      checkboxTamanho.forEach(function (input) {
+        input.checked = false;
+      });
+    }
+    return mostrar;
+  }
+
   function aplicarFiltros() {
     var termo = (campoBusca && campoBusca.value) || '';
     var categorias = valoresMarcados(checkboxCategoria);
+    atualizarFiltroTamanho(categorias);
+    var tamanhos = valoresMarcados(checkboxTamanho);
     var marcas = valoresMarcados(checkboxMarca);
     var cores = valoresMarcados(checkboxCor);
     var min = precoMin && precoMin.value !== '' ? parseFloat(precoMin.value) : null;
     var max = precoMax && precoMax.value !== '' ? parseFloat(precoMax.value) : null;
-    var visiveis = 0;
+    var filtroAtivo = !!termo || categorias.length > 0 || tamanhos.length > 0 || marcas.length > 0 || cores.length > 0 || min !== null || max !== null;
+    var correspondentes = 0;
 
     cards.forEach(function (card) {
       var preco = parseFloat(card.dataset.preco);
       var combina =
         correspondeABusca(card.dataset.busca, termo) &&
         (categorias.length === 0 || categorias.indexOf(card.dataset.categoria) !== -1) &&
+        (tamanhos.length === 0 || tamanhos.indexOf(card.dataset.tamanho) !== -1) &&
         (marcas.length === 0 || marcas.indexOf(card.dataset.marca) !== -1) &&
         (cores.length === 0 || cores.indexOf(card.dataset.cor) !== -1) &&
         (min === null || isNaN(preco) || preco >= min) &&
         (max === null || isNaN(preco) || preco <= max);
 
-      card.style.display = combina ? '' : 'none';
-      if (combina) visiveis++;
+      if (!combina) {
+        card.style.display = 'none';
+        return;
+      }
+
+      correspondentes++;
+      card.style.display = (filtroAtivo || correspondentes <= revelados) ? '' : 'none';
     });
 
     if (semResultado) {
-      semResultado.style.display = visiveis === 0 ? '' : 'none';
+      semResultado.style.display = correspondentes === 0 ? '' : 'none';
     }
     if (contagem) {
-      contagem.textContent = visiveis + (visiveis === 1 ? ' produto encontrado' : ' produtos encontrados');
+      if (filtroAtivo) {
+        contagem.textContent = correspondentes + (correspondentes === 1 ? ' produto encontrado' : ' produtos encontrados');
+      } else {
+        contagem.textContent = 'Mostrando ' + Math.min(revelados, correspondentes) + ' de ' + correspondentes + ' produtos';
+      }
+    }
+    if (botaoExibirMais) {
+      botaoExibirMais.style.display = (!filtroAtivo && revelados < correspondentes) ? '' : 'none';
     }
   }
 
@@ -66,6 +114,15 @@ document.addEventListener('DOMContentLoaded', function () {
     input.addEventListener('change', aplicarFiltros);
   });
 
+  atualizarFiltroTamanho(valoresMarcados(checkboxCategoria));
+
+  if (botaoExibirMais) {
+    botaoExibirMais.addEventListener('click', function () {
+      revelados += LOTE;
+      aplicarFiltros();
+    });
+  }
+
   if (botaoLimpar) {
     botaoLimpar.addEventListener('click', function () {
       if (campoBusca) campoBusca.value = '';
@@ -74,6 +131,7 @@ document.addEventListener('DOMContentLoaded', function () {
       todosCheckbox.forEach(function (input) {
         input.checked = false;
       });
+      revelados = LOTE;
       aplicarFiltros();
     });
   }

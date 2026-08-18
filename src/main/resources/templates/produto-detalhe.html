@@ -49,7 +49,8 @@
 
             <div class="produto-detalhe-info" th:style="${promoInfo != null ? '--sale: ' + promoInfo.cor + ';' : ''}">
                 <div class="produto-detalhe-topo">
-                    <p class="produto-categoria" th:if="${produto.categoria}" th:text="${produto.categoria}"></p>
+                    <p class="produto-categoria" th:if="${produto.categoria}"
+                       th:text="${produto.tamanho} ? ${produto.categoria} + ' · ' + ${produto.tamanho} : ${produto.categoria}"></p>
                     <button type="button" class="btn-compartilhar" id="btnCompartilhar">
                         <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M12 3v12"/>

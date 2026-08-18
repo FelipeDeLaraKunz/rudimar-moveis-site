@@ -1114,9 +1114,14 @@ a {
   padding: 20px;
   position: sticky;
   top: 140px;
+  /* com muitas categorias a lista fica mais alta que a tela; sem isso o sticky so
+     revelava as opcoes de baixo quando a pagina inteira era rolada. Assim, o proprio
+     bloco de filtros rola por dentro, sempre alcancavel. */
+  max-height: calc(100vh - 160px);
+  overflow-y: auto;
 }
 
-.catalogo-sidebar summary {
+.catalogo-sidebar > summary {
   font-family: var(--font-display);
   font-size: 16px;
   font-weight: 600;
@@ -1127,17 +1132,17 @@ a {
   justify-content: space-between;
 }
 
-.catalogo-sidebar summary::-webkit-details-marker {
+.catalogo-sidebar > summary::-webkit-details-marker {
   display: none;
 }
 
-.catalogo-sidebar summary::after {
+.catalogo-sidebar > summary::after {
   content: "\2212";
   color: var(--ink-soft);
   font-size: 15px;
 }
 
-.catalogo-sidebar:not([open]) summary::after {
+.catalogo-sidebar:not([open]) > summary::after {
   content: "+";
 }
 
@@ -1147,7 +1152,7 @@ a {
   border-top: 1px solid var(--border);
 }
 
-.catalogo-sidebar summary + .filtro-grupo {
+.catalogo-sidebar > summary + .filtro-grupo {
   margin-top: 16px;
   padding-top: 0;
   border-top: none;
@@ -1170,6 +1175,54 @@ a {
   font-size: 13.5px;
   padding: 5px 0;
   cursor: pointer;
+}
+
+/* subgrupos de categoria (Sala de estar, Quarto, ...) dentro do filtro de Categoria */
+.filtro-subgrupo {
+  border-top: 1px solid var(--border);
+}
+
+.filtro-subgrupo:first-of-type {
+  border-top: none;
+}
+
+.filtro-subgrupo summary {
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 0;
+}
+
+.filtro-subgrupo summary::-webkit-details-marker {
+  display: none;
+}
+
+.filtro-subgrupo summary::after {
+  content: "\2212";
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+
+.filtro-subgrupo:not([open]) summary::after {
+  content: "+";
+}
+
+.filtro-subgrupo .filtro-check {
+  padding-left: 4px;
+}
+
+.filtro-subgrupo[open] {
+  padding-bottom: 6px;
+}
+
+/* marca/cor podem crescer bastante com o tempo - rolagem propria pra nao dominar o resto dos filtros */
+.filtro-opcoes-scroll {
+  max-height: 180px;
+  overflow-y: auto;
 }
 
 .cor-dot {
@@ -1213,6 +1266,11 @@ a {
   color: var(--ink-soft);
   font-size: 14px;
   margin: 0 0 18px;
+}
+
+.catalogo-exibir-mais-wrap {
+  text-align: center;
+  margin-top: 8px;
 }
 
 .catalogo-cta-whatsapp {

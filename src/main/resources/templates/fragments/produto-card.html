@@ -11,14 +11,17 @@
    th:data-categoria="${produto.categoria ?: ''}"
    th:data-marca="${produto.marca ?: ''}"
    th:data-cor="${produto.cor ?: ''}"
+   th:data-tamanho="${produto.tamanho ?: ''}"
    th:data-preco="${produto.preco}"
    th:style="${promo != null ? '--sale: ' + promo.cor + ';' : ''}">
     <div class="produto-imagem">
-        <img th:if="${produto.imagemPrincipal}" th:src="${produto.imagemPrincipal}" th:alt="${produto.nome}">
+        <img th:if="${produto.imagemPrincipal}" th:src="${produto.imagemPrincipal}" th:alt="${produto.nome}"
+             loading="lazy" decoding="async">
         <span class="produto-tag-desconto" th:if="${promo != null and promo.percentualDesconto != null}" th:text="'-' + ${promo.percentualDesconto} + '%'"></span>
     </div>
     <div class="produto-info">
-        <p class="produto-categoria" th:if="${produto.categoria}" th:text="${produto.categoria}"></p>
+        <p class="produto-categoria" th:if="${produto.categoria}"
+           th:text="${produto.tamanho} ? ${produto.categoria} + ' · ' + ${produto.tamanho} : ${produto.categoria}"></p>
         <h3 th:text="${produto.nome}"></h3>
         <p class="descricao" th:if="${produto.descricao}" th:text="${produto.descricao}"></p>
 

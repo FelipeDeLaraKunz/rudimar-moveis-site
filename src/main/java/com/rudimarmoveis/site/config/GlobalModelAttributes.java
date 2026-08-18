@@ -1,13 +1,16 @@
 package com.rudimarmoveis.site.config;
 
+import com.rudimarmoveis.site.model.CategoriasCatalogo;
+import com.rudimarmoveis.site.model.GrupoCategorias;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
-import java.nio.charset.StandardCharsets;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 /**
  * Deixa os dados de contato/redes sociais da loja disponiveis em qualquer template,
@@ -92,5 +95,17 @@ public class GlobalModelAttributes {
     public String buscaInicial(HttpServletRequest request) {
         String busca = request.getParameter("busca");
         return busca == null ? "" : busca;
+    }
+
+    // taxonomia completa de categorias (por comodo), usada no select do formulario de produto (admin)
+    @ModelAttribute("gruposCategorias")
+    public List<GrupoCategorias> gruposCategorias() {
+        return CategoriasCatalogo.GRUPOS;
+    }
+
+    // opcoes de tamanho (Solteiro/Casal/Queen/King), usadas no formulario de produto (admin)
+    @ModelAttribute("tamanhosDisponiveis")
+    public List<String> tamanhosDisponiveis() {
+        return CategoriasCatalogo.TAMANHOS;
     }
 }

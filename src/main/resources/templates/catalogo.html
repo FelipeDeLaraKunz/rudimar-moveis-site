@@ -38,29 +38,44 @@
         <details class="catalogo-sidebar" open>
             <summary>Filtros</summary>
 
-            <div class="filtro-grupo" th:if="${!categoriasDisponiveis.isEmpty()}">
+            <div class="filtro-grupo" th:if="${!categoriasPorGrupo.isEmpty()}">
                 <h3 class="filtro-titulo">Categoria</h3>
-                <label class="filtro-check" th:each="c : ${categoriasDisponiveis}">
-                    <input type="checkbox" name="filtroCategoria" th:value="${c}">
-                    <span th:text="${c}"></span>
+                <details class="filtro-subgrupo" th:each="grupo, iter : ${categoriasPorGrupo}" th:open="${iter.index == 0}">
+                    <summary th:text="${grupo.nome}"></summary>
+                    <label class="filtro-check" th:each="c : ${grupo.categorias}">
+                        <input type="checkbox" name="filtroCategoria" th:value="${c}">
+                        <span th:text="${c}"></span>
+                    </label>
+                </details>
+            </div>
+
+            <div class="filtro-grupo" id="filtroTamanhoGrupo" th:if="${!tamanhosDisponiveis.isEmpty()}" hidden>
+                <h3 class="filtro-titulo">Tamanho</h3>
+                <label class="filtro-check" th:each="t : ${tamanhosDisponiveis}">
+                    <input type="checkbox" name="filtroTamanho" th:value="${t}">
+                    <span th:text="${t}"></span>
                 </label>
             </div>
 
             <div class="filtro-grupo" th:if="${!marcasDisponiveis.isEmpty()}">
                 <h3 class="filtro-titulo">Marca</h3>
-                <label class="filtro-check" th:each="m : ${marcasDisponiveis}">
-                    <input type="checkbox" name="filtroMarca" th:value="${m}">
-                    <span th:text="${m}"></span>
-                </label>
+                <div class="filtro-opcoes-scroll">
+                    <label class="filtro-check" th:each="m : ${marcasDisponiveis}">
+                        <input type="checkbox" name="filtroMarca" th:value="${m}">
+                        <span th:text="${m}"></span>
+                    </label>
+                </div>
             </div>
 
             <div class="filtro-grupo" th:if="${!coresDisponiveis.isEmpty()}">
                 <h3 class="filtro-titulo">Cor</h3>
-                <label class="filtro-check" th:each="c : ${coresDisponiveis}">
-                    <input type="checkbox" name="filtroCor" th:value="${c}">
-                    <span class="cor-dot" th:attr="data-cor=${c}"></span>
-                    <span th:text="${c}"></span>
-                </label>
+                <div class="filtro-opcoes-scroll">
+                    <label class="filtro-check" th:each="c : ${coresDisponiveis}">
+                        <input type="checkbox" name="filtroCor" th:value="${c}">
+                        <span class="cor-dot" th:attr="data-cor=${c}"></span>
+                        <span th:text="${c}"></span>
+                    </label>
+                </div>
             </div>
 
             <div class="filtro-grupo">
@@ -86,6 +101,10 @@
                 <th:block th:each="produto : ${produtos}">
                     <div th:replace="~{fragments/produto-card :: card(${produto}, ${promoPorProduto.get(produto.id)})}"></div>
                 </th:block>
+            </div>
+
+            <div class="catalogo-exibir-mais-wrap">
+                <button type="button" id="catalogoExibirMais" class="btn btn-primary" style="display: none;">Exibir mais produtos</button>
             </div>
 
             <div class="catalogo-cta-whatsapp">

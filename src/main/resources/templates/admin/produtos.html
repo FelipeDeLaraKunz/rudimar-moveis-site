@@ -87,52 +87,20 @@
                         <label for="categoria">Categoria</label>
                         <select id="categoria" th:field="*{categoria}">
                             <option value="">Selecione...</option>
-                            <optgroup label="Sala de estar">
-                                <option value="Sofá">Sofá</option>
-                                <option value="Esteira">Esteira</option>
-                                <option value="Poltrona">Poltrona</option>
-                                <option value="Rack/Painel para TV">Rack/Painel para TV</option>
-                                <option value="Mesa de centro">Mesa de centro</option>
-                                <option value="Estante">Estante</option>
-                                <option value="Puff">Puff</option>
-                            </optgroup>
-                            <optgroup label="Sala de jantar">
-                                <option value="Mesa de jantar">Mesa de jantar</option>
-                                <option value="Cadeira de jantar">Cadeira de jantar</option>
-                                <option value="Buffet">Buffet</option>
-                                <option value="Aparador">Aparador</option>
-                                <option value="Cristaleira">Cristaleira</option>
-                            </optgroup>
-                            <optgroup label="Quarto">
-                                <option value="Cama">Cama</option>
-                                <option value="Colchão">Colchão</option>
-                                <option value="Guarda-roupa/Roupeiro">Guarda-roupa/Roupeiro</option>
-                                <option value="Cômoda">Cômoda</option>
-                                <option value="Mesa de cabeceira">Mesa de cabeceira</option>
-                                <option value="Escrivaninha">Escrivaninha</option>
-                                <option value="Penteadeira">Penteadeira</option>
-                                <option value="Cabeceira">Cabeceira</option>
-                                <option value="Multiuso/Organizador">Multiuso/Organizador</option>
-                            </optgroup>
-                            <optgroup label="Cozinha">
-                                <option value="Armário de cozinha">Armário de cozinha</option>
-                                <option value="Mesa de cozinha">Mesa de cozinha</option>
-                                <option value="Cadeira de cozinha">Cadeira de cozinha</option>
-                                <option value="Balcão/Bancada">Balcão/Bancada</option>
-                                <option value="Fruteira">Fruteira</option>
-                                <option value="Cubas e pias">Cubas e pias</option>
-                            </optgroup>
-                            <optgroup label="Escritório">
-                                <option value="Mesa de escritório">Mesa de escritório</option>
-                                <option value="Cadeira de escritório">Cadeira de escritório</option>
-                                <option value="Estante">Estante</option>
-                                <option value="Armário de escritório">Armário de escritório</option>
-                                <option value="Gaveteiro">Gaveteiro</option>
-                            </optgroup>
-                            <optgroup label="Eletrodomésticos">
-                                <option value="Cooktop">Cooktop</option>
+                            <optgroup th:each="grupo : ${gruposCategorias}" th:label="${grupo.nome}">
+                                <option th:each="c : ${grupo.categorias}" th:value="${c}" th:text="${c}"></option>
                             </optgroup>
                             <option value="Outros">Outros</option>
+                        </select>
+                    </div>
+
+                    <!-- so aparece (via JS) quando a categoria escolhida acima varia por tamanho
+                         (Cama, Conjunto box, Colchao) - ver CATEGORIAS_COM_TAMANHO em admin-produtos.js -->
+                    <div class="form-field" id="campoTamanho" hidden>
+                        <label for="tamanho">Tamanho</label>
+                        <select id="tamanho" th:field="*{tamanho}">
+                            <option value="">Selecione...</option>
+                            <option th:each="t : ${tamanhosDisponiveis}" th:value="${t}" th:text="${t}"></option>
                         </select>
                     </div>
 
@@ -422,7 +390,7 @@
                             th:data-categoria="${p.categoria ?: ''}" th:data-marca="${p.marca ?: ''}"
                             th:data-cor="${p.cor ?: ''}" th:data-status="${p.ativo ? 'visivel' : 'oculto'}">
                             <td><img th:if="${p.imagemPrincipal}" th:src="${p.imagemPrincipal}" class="thumb"
-                                    th:alt="${p.nome}"></td>
+                                    th:alt="${p.nome}" loading="lazy" decoding="async"></td>
                             <td th:text="${p.nomeInterno}"></td>
                             <td th:text="${p.nome}"></td>
                             <td th:text="${p.categoria}"></td>
@@ -445,6 +413,10 @@
                         </tr>
                     </tbody>
                 </table>
+            </div>
+            <div style="text-align: center; margin-top: 16px;">
+                <button type="button" id="produtosExibirMais" class="btn-admin-secondary" style="display: none;">Exibir
+                    mais produtos</button>
             </div>
             <p id="filtroVazio" class="empty-msg" style="display:none;">Nenhum produto encontrado com esses filtros.</p>
             <p th:if="${produtos.isEmpty()}" class="empty-msg">Nenhum produto cadastrado ainda.</p>

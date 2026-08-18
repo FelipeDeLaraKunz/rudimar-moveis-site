@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   configurarUploadFotos();
   configurarCorPersonalizada();
+  configurarTamanhoPorCategoria();
 
   var tabela = document.getElementById('tabelaProdutos');
   if (!tabela) {
@@ -35,6 +36,13 @@ document.addEventListener('DOMContentLoaded', function () {
   var selCor = document.getElementById('filtroCor');
   var selStatus = document.getElementById('filtroStatus');
   var mensagemVazio = document.getElementById('filtroVazio');
+  var botaoExibirMais = document.getElementById('produtosExibirMais');
+
+  // com filtro nenhum aplicado, mostra so um lote de linhas por vez (o resto ja esta no
+  // HTML, so escondido) - evita carregar de uma vez as fotos de todas as linhas da tabela.
+  // Assim que algum filtro entra em jogo, mostra todas as linhas que combinam.
+  var LOTE = 30;
+  var revelados = LOTE;
 
   function popularOpcoes(select, valores) {
     if (!select) return;
@@ -62,13 +70,48 @@ document.addEventListener('DOMContentLoaded', function () {
   popularOpcoes(selMarca, marcas);
   popularOpcoes(selCor, cores);
 
+  // guarda os filtros usados por ultimo nesta aba (sessionStorage), para nao perde-los
+  // ao editar/excluir um produto: essas acoes recarregam a pagina inteira, e sem isso os
+  // filtros (que so existem no DOM, escondendo/mostrando linhas) voltavam a zero.
+  var CHAVE_FILTROS = 'admin-produtos-filtros';
+
+  function salvarFiltros() {
+    var filtros = {
+      busca: campoBusca ? campoBusca.value : '',
+      categoria: selCategoria ? selCategoria.value : '',
+      marca: selMarca ? selMarca.value : '',
+      cor: selCor ? selCor.value : '',
+      status: selStatus ? selStatus.value : '',
+      revelados: revelados
+    };
+    sessionStorage.setItem(CHAVE_FILTROS, JSON.stringify(filtros));
+  }
+
+  function restaurarFiltros() {
+    var salvos;
+    try {
+      salvos = JSON.parse(sessionStorage.getItem(CHAVE_FILTROS));
+    } catch (e) {
+      salvos = null;
+    }
+    if (!salvos) return;
+
+    if (campoBusca) campoBusca.value = salvos.busca || '';
+    if (selCategoria) selCategoria.value = salvos.categoria || '';
+    if (selMarca) selMarca.value = salvos.marca || '';
+    if (selCor) selCor.value = salvos.cor || '';
+    if (selStatus) selStatus.value = salvos.status || '';
+    if (salvos.revelados) revelados = salvos.revelados;
+  }
+
   function aplicarFiltros() {
     var termo = (campoBusca && campoBusca.value) || '';
     var categoria = selCategoria ? selCategoria.value : '';
     var marca = selMarca ? selMarca.value : '';
     var cor = selCor ? selCor.value : '';
     var status = selStatus ? selStatus.value : '';
-    var visiveis = 0;
+    var filtroAtivo = !!termo || !!categoria || !!marca || !!cor || !!status;
+    var correspondentes = 0;
 
     linhas.forEach(function (linha) {
       var combina =
@@ -78,20 +121,40 @@ document.addEventListener('DOMContentLoaded', function () {
         (!cor || linha.dataset.cor === cor) &&
         (!status || linha.dataset.status === status);
 
-      linha.style.display = combina ? '' : 'none';
-      if (combina) visiveis++;
+      if (!combina) {
+        linha.style.display = 'none';
+        return;
+      }
+
+      correspondentes++;
+      linha.style.display = (filtroAtivo || correspondentes <= revelados) ? '' : 'none';
     });
 
     if (mensagemVazio) {
-      mensagemVazio.style.display = visiveis === 0 ? '' : 'none';
+      mensagemVazio.style.display = correspondentes === 0 ? '' : 'none';
     }
+    if (botaoExibirMais) {
+      botaoExibirMais.style.display = (!filtroAtivo && revelados < correspondentes) ? '' : 'none';
+    }
+
+    salvarFiltros();
   }
+
+  restaurarFiltros();
+  aplicarFiltros();
 
   [campoBusca, selCategoria, selMarca, selCor, selStatus].forEach(function (elemento) {
     if (elemento) {
       elemento.addEventListener('input', aplicarFiltros);
     }
   });
+
+  if (botaoExibirMais) {
+    botaoExibirMais.addEventListener('click', function () {
+      revelados += LOTE;
+      aplicarFiltros();
+    });
+  }
 });
 
 function cabecalhosComCsrf() {
@@ -340,4 +403,30 @@ function configurarCorPersonalizada() {
       selectCor.value = texto;
     });
   }
+}
+
+// So categorias que costumam variar por tamanho (cama, conjunto box, colchao) mostram o
+// campo "Tamanho" - mantido em sincronia manualmente com CategoriasCatalogo.CATEGORIAS_COM_TAMANHO
+// (Java) e a mesma lista em catalogo.js.
+var CATEGORIAS_COM_TAMANHO = ['Cama', 'Conjunto box', 'Colchão'];
+
+function configurarTamanhoPorCategoria() {
+  var selectCategoria = document.getElementById('categoria');
+  var campoTamanho = document.getElementById('campoTamanho');
+  var selectTamanho = document.getElementById('tamanho');
+
+  if (!selectCategoria || !campoTamanho || !selectTamanho) {
+    return;
+  }
+
+  function atualizar() {
+    var precisaTamanho = CATEGORIAS_COM_TAMANHO.indexOf(selectCategoria.value) !== -1;
+    campoTamanho.hidden = !precisaTamanho;
+    if (!precisaTamanho) {
+      selectTamanho.value = '';
+    }
+  }
+
+  atualizar();
+  selectCategoria.addEventListener('change', atualizar);
 }

@@ -1,5 +1,7 @@
 package com.rudimarmoveis.site.controller;
 
+import com.rudimarmoveis.site.model.CategoriasCatalogo;
+import com.rudimarmoveis.site.model.GrupoCategorias;
 import com.rudimarmoveis.site.model.PrecoPromocional;
 import com.rudimarmoveis.site.model.Produto;
 import com.rudimarmoveis.site.model.Promocao;
@@ -17,9 +19,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -72,10 +76,37 @@ public class HomeController {
         model.addAttribute("totalProdutos", produtos.size());
         model.addAttribute("promoPorProduto", promocaoService.mapearPorProduto(promocaoService.listarValidas()));
         // valores realmente em uso pelos produtos ativos, para montar os filtros da lateral
-        model.addAttribute("categoriasDisponiveis", extrairValoresDistintos(produtos, Produto::getCategoria));
+        // (categorias agrupadas por comodo, so mostrando o que de fato tem produto)
+        model.addAttribute("categoriasPorGrupo", agruparCategoriasDisponiveis(extrairValoresDistintos(produtos, Produto::getCategoria)));
         model.addAttribute("marcasDisponiveis", extrairValoresDistintos(produtos, Produto::getMarca));
         model.addAttribute("coresDisponiveis", extrairValoresDistintos(produtos, Produto::getCor));
+        model.addAttribute("tamanhosDisponiveis", extrairValoresDistintos(produtos, Produto::getTamanho));
         return "catalogo";
+    }
+
+    // agrupa as categorias realmente em uso pelos produtos ativos seguindo a mesma
+    // organizacao por comodo do formulario de produto (CategoriasCatalogo); categorias que
+    // nao caem em nenhum grupo conhecido (ex: valor digitado direto no banco) vao para "Outros"
+    private List<GrupoCategorias> agruparCategoriasDisponiveis(List<String> categoriasDisponiveis) {
+        Set<String> pendentes = new HashSet<>(categoriasDisponiveis);
+        List<GrupoCategorias> grupos = new ArrayList<>();
+
+        for (GrupoCategorias grupo : CategoriasCatalogo.GRUPOS) {
+            List<String> presentes = grupo.categorias().stream()
+                    .filter(pendentes::contains)
+                    .collect(Collectors.toList());
+            if (!presentes.isEmpty()) {
+                grupos.add(new GrupoCategorias(grupo.nome(), presentes));
+                pendentes.removeAll(presentes);
+            }
+        }
+
+        if (!pendentes.isEmpty()) {
+            List<String> semGrupo = pendentes.stream().sorted(String.CASE_INSENSITIVE_ORDER).collect(Collectors.toList());
+            grupos.add(new GrupoCategorias("Outros", semGrupo));
+        }
+
+        return grupos;
     }
 
     // lista ordenada e sem duplicatas/vazios de um atributo do produto, usada para montar os filtros do catalogo

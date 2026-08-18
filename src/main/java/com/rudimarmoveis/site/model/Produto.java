@@ -44,6 +44,10 @@ public class Produto {
 
     private String categoria;
 
+    // So preenchido para categorias que variam por tamanho (Cama, Conjunto box, Colchao) -
+    // ver CategoriasCatalogo.CATEGORIAS_COM_TAMANHO. Fica null pras demais categorias.
+    private String tamanho;
+
     private String marca;
 
     private String cor;
@@ -132,6 +136,14 @@ public class Produto {
 
     public void setCategoria(String categoria) {
         this.categoria = categoria;
+    }
+
+    public String getTamanho() {
+        return tamanho;
+    }
+
+    public void setTamanho(String tamanho) {
+        this.tamanho = tamanho;
     }
 
     public String getMarca() {
