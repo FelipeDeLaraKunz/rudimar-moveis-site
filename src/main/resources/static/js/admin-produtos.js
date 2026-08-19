@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', function () {
   configurarUploadFotos();
   configurarCorPersonalizada();
   configurarTamanhoPorCategoria();
+  configurarPrecoAutomatico();
 
   var tabela = document.getElementById('tabelaProdutos');
   if (!tabela) {
@@ -429,4 +430,34 @@ function configurarTamanhoPorCategoria() {
 
   atualizar();
   selectCategoria.addEventListener('change', atualizar);
+}
+
+// Ao digitar (ou alterar) o preco parcelado, sugere o preco a vista com 10% de desconto -
+// o admin ve o valor sugerido e pode ajustar antes de salvar, tanto criando um produto novo
+// quanto editando um ja existente. Para de sugerir assim que o admin mexe direto no campo
+// de preco a vista (nao fica recalculando por cima de um valor editado de proposito).
+function configurarPrecoAutomatico() {
+  var campoPreco = document.getElementById('preco');
+  var campoPrecoCartao = document.getElementById('precoCartao');
+
+  if (!campoPreco || !campoPrecoCartao) {
+    return;
+  }
+
+  var precoTocadoManualmente = false;
+
+  campoPreco.addEventListener('input', function () {
+    precoTocadoManualmente = true;
+  });
+
+  campoPrecoCartao.addEventListener('input', function () {
+    if (precoTocadoManualmente) {
+      return;
+    }
+    var precoCartao = parseFloat(campoPrecoCartao.value);
+    if (isNaN(precoCartao) || precoCartao <= 0) {
+      return;
+    }
+    campoPreco.value = (precoCartao * 0.9).toFixed(2);
+  });
 }
