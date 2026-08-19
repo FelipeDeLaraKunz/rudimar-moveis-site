@@ -912,6 +912,103 @@ a {
   margin: 12px 0 0;
 }
 
+.produto-avisos-galeria {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.produto-avisos-galeria p {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  margin: 0 0 10px;
+}
+
+.produto-avisos-galeria p:last-child {
+  margin-bottom: 0;
+}
+
+.produto-avisos-galeria svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--ink-soft);
+}
+
+.produto-aviso-bloco {
+  background: var(--surface-warm);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin: 14px 0 0;
+}
+
+.produto-aviso-bloco h3 {
+  font-family: var(--font-tag);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--ink-soft);
+  margin: 0 0 3px;
+}
+
+.produto-aviso-bloco p {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  line-height: 1.45;
+  margin: 0;
+}
+
+/* so um dos dois (desktop/mobile) fica visivel por vez - ver produto-detalhe.html */
+.produto-aviso-bloco--mobile {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .produto-aviso-bloco--desktop {
+    display: none;
+  }
+
+  .produto-aviso-bloco--mobile {
+    display: block;
+    margin-top: 16px;
+  }
+}
+
+.produto-aviso-frete {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: color-mix(in srgb, var(--brass) 18%, white);
+  border: 1px solid var(--brass-dark);
+  border-radius: 9px;
+  padding: 8px 12px;
+  margin: 0 0 14px;
+}
+
+.produto-aviso-frete svg {
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
+  color: var(--wood-dark);
+}
+
+.produto-aviso-frete span {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--wood-dark);
+}
+
+.produto-detalhe-info .btn-whatsapp {
+  padding: 17px 32px;
+  font-size: 17px;
+  width: 100%;
+  justify-content: center;
+}
+
 /* ---------- Produtos ---------- */
 
 .produtos-grid {
@@ -984,10 +1081,10 @@ a {
   margin: 0 0 14px;
 }
 
-/* Na home os cards ficam mais apertados (vitrine/carrossel), entao a descricao e
-   cortada em 2 linhas - so aqui, o catalogo e a pagina de promocao continuam mostrando
-   a descricao inteira. */
-.pagina-home .produto-info p.descricao {
+/* Descricao cortada em 2 linhas nas paginas de listagem (home e catalogo) - consome
+   menos espaco no card. Continua inteira so na pagina de detalhe do produto. */
+.pagina-home .produto-info p.descricao,
+.pagina-catalogo .produto-info p.descricao {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
