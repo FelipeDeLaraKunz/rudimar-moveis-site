@@ -12,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.util.StringUtils;
 
 /**
  * So existe UM usuario no sistema: o administrador da loja.
@@ -40,6 +41,17 @@ public class SecurityConfig {
 
     @Bean
     public InMemoryUserDetailsManager userDetailsService(PasswordEncoder encoder) {
+        // ADMIN_PASSWORD sem valor default no application.properties ja faz o Spring recusar
+        // subir se a variavel nao existir - mas se ela existir e vier VAZIA (ex: docker-compose
+        // substitui por string vazia quando falta um .env na VPS, sem dar erro), o Spring
+        // resolve isso como "definida, e vazia" e passaria direto. Por isso o cheque aqui:
+        // a aplicacao tem que recusar subir com uma senha de admin fraca/vazia, nunca abrir
+        // o painel administrativo protegido por "nada".
+        if (!StringUtils.hasText(adminPassword) || adminPassword.length() < 8) {
+            throw new IllegalStateException(
+                    "admin.password (variavel de ambiente ADMIN_PASSWORD) nao esta definida ou e "
+                            + "curta demais (minimo 8 caracteres). Configure uma senha forte antes de subir a aplicacao.");
+        }
         UserDetails admin = User.builder()
                 .username(adminUsername)
                 .password(encoder.encode(adminPassword))

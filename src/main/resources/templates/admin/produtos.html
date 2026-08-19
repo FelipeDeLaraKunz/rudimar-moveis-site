@@ -42,6 +42,9 @@
                         onchange="this.form.submit()">
                 </form>
                 <a th:href="@{/admin/produtos/exportar}" class="btn-admin-secondary">Exportar planilha</a>
+                <form th:action="@{/admin/produtos/otimizar-fotos}" method="post">
+                    <button type="submit" class="btn-admin-secondary">Otimizar fotos já enviadas</button>
+                </form>
                 <a th:href="@{/admin/produtos(novo=true)}" class="btn-admin">+ Novo produto</a>
             </div>
         </div>
@@ -49,6 +52,9 @@
         <div class="admin-alerta admin-alerta-sucesso" th:if="${importados != null}">
             <span
                 th:text="${importados} + ' produto(s) importado(s) com sucesso! Eles ficam ocultos do site até você completar foto, preço e o que faltar em cada um.'"></span>
+        </div>
+        <div class="admin-alerta admin-alerta-sucesso" th:if="${otimizacaoFotos != null}">
+            <span th:text="${otimizacaoFotos}"></span>
         </div>
         <div class="admin-alerta admin-alerta-erro" th:if="${erroImportacao != null}">
             <span th:text="${erroImportacao}"></span>

@@ -28,6 +28,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -79,7 +80,8 @@ public class AdminController {
                                  BindingResult result,
                                  @RequestParam(value = "novasImagens", required = false) List<MultipartFile> novasImagens,
                                  @RequestParam(value = "imagensRemover", required = false) List<String> imagensRemover,
-                                 Model model) {
+                                 Model model,
+                                 RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
             List<Produto> produtos = produtoRepository.findAll();
             model.addAttribute("produtos", produtos);
@@ -88,25 +90,41 @@ public class AdminController {
             return "admin/produtos";
         }
 
-        // monta a lista final de imagens: comeca com as que ja existiam (se for edicao),
-        // remove as marcadas para exclusao e acrescenta as novas enviadas agora
-        List<String> imagensFinal = new ArrayList<>();
+        // monta a lista final de imagens: comeca com as que ja existiam (se for edicao)
+        List<String> imagensExistentes = new ArrayList<>();
         if (produto.getId() != null) {
             produtoRepository.findById(produto.getId())
-                    .ifPresent(existente -> imagensFinal.addAll(existente.getImagens()));
+                    .ifPresent(existente -> imagensExistentes.addAll(existente.getImagens()));
         }
+
+        // processa as fotos novas ANTES de mexer nas existentes: se alguma falhar, nada foi
+        // apagado ainda (nem do disco, nem do banco) e da pra voltar pro formulario sem
+        // ter perdido/quebrado nenhuma foto que ja estava la
+        List<String> imagensNovas = new ArrayList<>();
+        if (novasImagens != null) {
+            try {
+                for (MultipartFile arquivo : novasImagens) {
+                    String url = armazenamentoImagens.salvar(arquivo);
+                    if (url != null) {
+                        imagensNovas.add(url);
+                    }
+                }
+            } catch (ArmazenamentoImagensService.ImagemInvalidaException e) {
+                redirectAttributes.addFlashAttribute("erroUpload", e.getMessage());
+                produto.setImagens(imagensExistentes);
+                redirectAttributes.addFlashAttribute("produto", produto);
+                return produto.getId() != null
+                        ? "redirect:/admin/produtos/" + produto.getId() + "/editar"
+                        : "redirect:/admin/produtos?novo=true";
+            }
+        }
+
+        List<String> imagensFinal = new ArrayList<>(imagensExistentes);
         if (imagensRemover != null) {
             imagensRemover.forEach(armazenamentoImagens::excluir);
             imagensFinal.removeAll(imagensRemover);
         }
-        if (novasImagens != null) {
-            for (MultipartFile arquivo : novasImagens) {
-                String url = armazenamentoImagens.salvar(arquivo);
-                if (url != null) {
-                    imagensFinal.add(url);
-                }
-            }
-        }
+        imagensFinal.addAll(imagensNovas);
         produto.setImagens(imagensFinal);
 
         produtoRepository.save(produto);
@@ -115,10 +133,15 @@ public class AdminController {
 
     @GetMapping("/produtos/{id}/editar")
     public String editarProduto(@PathVariable Long id, Model model) {
-        Produto produto = produtoRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Produto nao encontrado: " + id));
+        // se ja veio um "produto" via flash (redirecionado de volta por causa de um erro no
+        // salvamento), usa ele em vez de recarregar do banco - senao as edicoes que o admin
+        // tinha acabado de fazer no formulario seriam perdidas
+        if (!model.containsAttribute("produto")) {
+            Produto produto = produtoRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Produto nao encontrado: " + id));
+            model.addAttribute("produto", produto);
+        }
         List<Produto> produtos = produtoRepository.findAll();
-        model.addAttribute("produto", produto);
         model.addAttribute("produtos", produtos);
         model.addAttribute("marcasExistentes", extrairMarcas(produtos));
         model.addAttribute("abrirModal", true);
@@ -131,6 +154,35 @@ public class AdminController {
             produto.getImagens().forEach(armazenamentoImagens::excluir);
             produtoRepository.delete(produto);
         });
+        return "redirect:/admin/produtos";
+    }
+
+    // reprocessa (redimensiona/recomprime) as fotos ja enviadas de produtos e promocoes que
+    // estao maiores que o necessario - pra melhorar fotos enviadas antes dessa otimizacao
+    // existir (fotos novas ja saem otimizadas na hora do upload, ver ArmazenamentoImagensService)
+    @PostMapping("/produtos/otimizar-fotos")
+    public String otimizarFotos(RedirectAttributes redirectAttributes) {
+        List<String> caminhos = new ArrayList<>();
+        produtoRepository.findAll().forEach(p -> caminhos.addAll(p.getImagens()));
+        promocaoRepository.findAll().forEach(promo -> {
+            if (StringUtils.hasText(promo.getImagemUrl())) {
+                caminhos.add(promo.getImagemUrl());
+            }
+        });
+
+        ArmazenamentoImagensService.ResultadoOtimizacao resultado = armazenamentoImagens.otimizarExistentes(caminhos);
+        String mensagem;
+        if (resultado.otimizadas() == 0) {
+            mensagem = "Nenhuma foto precisava ser otimizada - todas já estão no tamanho ideal.";
+        } else {
+            double economiaMb = (resultado.bytesAntes() - resultado.bytesDepois()) / 1024.0 / 1024.0;
+            mensagem = resultado.otimizadas() + " foto(s) otimizada(s), economizando "
+                    + String.format(Locale.forLanguageTag("pt-BR"), "%.1f", economiaMb) + " MB no total.";
+        }
+        if (resultado.comFalha() > 0) {
+            mensagem += " " + resultado.comFalha() + " foto(s) não puderam ser processadas (formato não suportado).";
+        }
+        redirectAttributes.addFlashAttribute("otimizacaoFotos", mensagem);
         return "redirect:/admin/produtos";
     }
 
@@ -214,20 +266,29 @@ public class AdminController {
     public String salvarPromocao(@Valid @ModelAttribute("promocao") Promocao promocao,
                                   BindingResult result,
                                   @RequestParam(value = "imagemUpload", required = false) MultipartFile imagemUpload,
-                                  Model model) {
+                                  Model model,
+                                  RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
             popularModeloPromocoes(model);
             model.addAttribute("abrirModal", true);
             return "admin/promocoes";
         }
 
-        String novaImagem = armazenamentoImagens.salvar(imagemUpload);
-        if (novaImagem != null) {
-            promocao.setImagemUrl(novaImagem);
-        } else if (promocao.getId() != null) {
-            // nao enviou uma nova foto na edicao: mantem a imagem que ja estava salva
-            promocaoRepository.findById(promocao.getId())
-                    .ifPresent(existente -> promocao.setImagemUrl(existente.getImagemUrl()));
+        try {
+            String novaImagem = armazenamentoImagens.salvar(imagemUpload);
+            if (novaImagem != null) {
+                promocao.setImagemUrl(novaImagem);
+            } else if (promocao.getId() != null) {
+                // nao enviou uma nova foto na edicao: mantem a imagem que ja estava salva
+                promocaoRepository.findById(promocao.getId())
+                        .ifPresent(existente -> promocao.setImagemUrl(existente.getImagemUrl()));
+            }
+        } catch (ArmazenamentoImagensService.ImagemInvalidaException e) {
+            redirectAttributes.addFlashAttribute("erroUpload", e.getMessage());
+            redirectAttributes.addFlashAttribute("promocao", promocao);
+            return promocao.getId() != null
+                    ? "redirect:/admin/promocoes/" + promocao.getId() + "/editar"
+                    : "redirect:/admin/promocoes?novo=true";
         }
 
         promocaoRepository.save(promocao);
@@ -236,9 +297,13 @@ public class AdminController {
 
     @GetMapping("/promocoes/{id}/editar")
     public String editarPromocao(@PathVariable Long id, Model model) {
-        Promocao promocao = promocaoRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Promocao nao encontrada: " + id));
-        model.addAttribute("promocao", promocao);
+        // se ja veio uma "promocao" via flash (redirecionado de volta por erro no salvamento),
+        // usa ela em vez de recarregar do banco - senao as edicoes do formulario se perderiam
+        if (!model.containsAttribute("promocao")) {
+            Promocao promocao = promocaoRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Promocao nao encontrada: " + id));
+            model.addAttribute("promocao", promocao);
+        }
         popularModeloPromocoes(model);
         model.addAttribute("abrirModal", true);
         return "admin/promocoes";

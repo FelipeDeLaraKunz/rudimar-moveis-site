@@ -29,15 +29,13 @@ public class ImagemExternaService {
                 // forca HTTP/1.1: evita que o cliente tente um upgrade h2c que alguns servidores nao respondem
                 .version(HttpClient.Version.HTTP_1_1)
                 .connectTimeout(Duration.ofSeconds(8))
-                .followRedirects(HttpClient.Redirect.NORMAL)
+                // NAO seguir redirecionamento automaticamente: se seguisse, um link aprovado na
+                // validacao (endereco publico) poderia redirecionar pro localhost/rede interna e
+                // contornar a checagem de SSRF inteira - so validamos o endereco final se o
+                // redirecionamento vier explicito, checando de novo do zero (ver abaixo)
+                .followRedirects(HttpClient.Redirect.NEVER)
                 .build();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(uri)
-                .timeout(Duration.ofSeconds(8))
-                .header("User-Agent", "Mozilla/5.0 (compatible; RudimarMoveisBot/1.0)")
-                .GET()
-                .build();
-        HttpResponse<byte[]> resposta = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+        HttpResponse<byte[]> resposta = enviarComRedirecionamentoValidado(client, uri, 0);
 
         String tipoConteudo = resposta.headers().firstValue("Content-Type").orElse("");
         if (resposta.statusCode() != 200 || !tipoConteudo.startsWith("image/")) {
@@ -48,6 +46,36 @@ public class ImagemExternaService {
         }
 
         return new ImagemBaixada(resposta.body(), tipoConteudo);
+    }
+
+    private static final int MAX_REDIRECIONAMENTOS = 5;
+
+    // segue redirecionamentos manualmente, validando (SSRF) o destino a cada salto - nunca
+    // confia num redirecionamento pra pular a checagem de endereco interno/privado
+    private HttpResponse<byte[]> enviarComRedirecionamentoValidado(HttpClient client, URI uri, int profundidade)
+            throws IOException, InterruptedException {
+        if (profundidade > MAX_REDIRECIONAMENTOS) {
+            throw new IllegalArgumentException("Esse link tem redirecionamentos demais.");
+        }
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(uri)
+                .timeout(Duration.ofSeconds(8))
+                .header("User-Agent", "Mozilla/5.0 (compatible; RudimarMoveisBot/1.0)")
+                .GET()
+                .build();
+        HttpResponse<byte[]> resposta = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+
+        int status = resposta.statusCode();
+        if (status >= 300 && status < 400) {
+            String local = resposta.headers().firstValue("Location")
+                    .orElseThrow(() -> new IllegalArgumentException("Esse link redireciona sem indicar destino."));
+            URI destino = uri.resolve(local);
+            URI destinoValidado = validarUrlDeImagem(destino.toString());
+            return enviarComRedirecionamentoValidado(client, destinoValidado, profundidade + 1);
+        }
+
+        return resposta;
     }
 
     // aceita so http/https e bloqueia enderecos internos/privados, para evitar que esse
