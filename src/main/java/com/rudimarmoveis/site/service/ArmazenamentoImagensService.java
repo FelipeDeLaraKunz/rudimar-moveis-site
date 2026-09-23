@@ -22,10 +22,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -171,58 +169,6 @@ public class ArmazenamentoImagensService {
         } finally {
             writer.dispose();
         }
-    }
-
-    /**
-     * Reprocessa (redimensiona/recomprime, in-place, mantendo o mesmo nome/URL) as fotos ja
-     * salvas que ainda estao maiores que o necessario - usado pela acao "Otimizar fotos ja
-     * enviadas" do admin, pra melhorar fotos que foram enviadas antes dessa otimizacao
-     * existir. Fotos que ja estao pequenas, ou em formato que o Java nao consegue ler, sao
-     * puladas (contadas separadamente no resultado).
-     */
-    public ResultadoOtimizacao otimizarExistentes(List<String> caminhosPublicos) {
-        Set<String> unicos = new LinkedHashSet<>(caminhosPublicos);
-        int otimizadas = 0;
-        int jaOtimas = 0;
-        int comFalha = 0;
-        long bytesAntes = 0;
-        long bytesDepois = 0;
-
-        for (String caminhoPublico : unicos) {
-            Path arquivo = resolverDentroDoDiretorio(caminhoPublico);
-            if (arquivo == null || !Files.isRegularFile(arquivo)) {
-                continue;
-            }
-
-            try {
-                long tamanhoAntes = Files.size(arquivo);
-                BufferedImage imagem = ImageIO.read(arquivo.toFile());
-                if (imagem == null) {
-                    comFalha++;
-                    continue;
-                }
-                boolean dimensaoOk = imagem.getWidth() <= DIMENSAO_MAXIMA && imagem.getHeight() <= DIMENSAO_MAXIMA;
-                if (dimensaoOk) {
-                    // ja esta dentro do tamanho ideal - pula pra nao recomprimir (e perder
-                    // qualidade) uma foto que rodar essa acao de novo no futuro vai encontrar
-                    jaOtimas++;
-                    continue;
-                }
-
-                String extensao = extrairExtensao(arquivo.getFileName().toString());
-                salvarRedimensionada(imagem, extensao, arquivo);
-                bytesAntes += tamanhoAntes;
-                bytesDepois += Files.size(arquivo);
-                otimizadas++;
-            } catch (IOException e) {
-                comFalha++;
-            }
-        }
-
-        return new ResultadoOtimizacao(otimizadas, jaOtimas, comFalha, bytesAntes, bytesDepois);
-    }
-
-    public record ResultadoOtimizacao(int otimizadas, int jaOtimas, int comFalha, long bytesAntes, long bytesDepois) {
     }
 
     /** Remove um arquivo previamente salvo (usado ao excluir produto/imagem). Falhas sao ignoradas. */

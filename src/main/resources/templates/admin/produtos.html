@@ -42,9 +42,6 @@
                         onchange="this.form.submit()">
                 </form>
                 <a th:href="@{/admin/produtos/exportar}" class="btn-admin-secondary">Exportar planilha</a>
-                <form th:action="@{/admin/produtos/otimizar-fotos}" method="post">
-                    <button type="submit" class="btn-admin-secondary">Otimizar fotos já enviadas</button>
-                </form>
                 <a th:href="@{/admin/produtos(novo=true)}" class="btn-admin">+ Novo produto</a>
             </div>
         </div>

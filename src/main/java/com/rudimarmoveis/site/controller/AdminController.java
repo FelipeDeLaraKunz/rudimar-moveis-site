@@ -157,35 +157,6 @@ public class AdminController {
         return "redirect:/admin/produtos";
     }
 
-    // reprocessa (redimensiona/recomprime) as fotos ja enviadas de produtos e promocoes que
-    // estao maiores que o necessario - pra melhorar fotos enviadas antes dessa otimizacao
-    // existir (fotos novas ja saem otimizadas na hora do upload, ver ArmazenamentoImagensService)
-    @PostMapping("/produtos/otimizar-fotos")
-    public String otimizarFotos(RedirectAttributes redirectAttributes) {
-        List<String> caminhos = new ArrayList<>();
-        produtoRepository.findAll().forEach(p -> caminhos.addAll(p.getImagens()));
-        promocaoRepository.findAll().forEach(promo -> {
-            if (StringUtils.hasText(promo.getImagemUrl())) {
-                caminhos.add(promo.getImagemUrl());
-            }
-        });
-
-        ArmazenamentoImagensService.ResultadoOtimizacao resultado = armazenamentoImagens.otimizarExistentes(caminhos);
-        String mensagem;
-        if (resultado.otimizadas() == 0) {
-            mensagem = "Nenhuma foto precisava ser otimizada - todas já estão no tamanho ideal.";
-        } else {
-            double economiaMb = (resultado.bytesAntes() - resultado.bytesDepois()) / 1024.0 / 1024.0;
-            mensagem = resultado.otimizadas() + " foto(s) otimizada(s), economizando "
-                    + String.format(Locale.forLanguageTag("pt-BR"), "%.1f", economiaMb) + " MB no total.";
-        }
-        if (resultado.comFalha() > 0) {
-            mensagem += " " + resultado.comFalha() + " foto(s) não puderam ser processadas (formato não suportado).";
-        }
-        redirectAttributes.addFlashAttribute("otimizacaoFotos", mensagem);
-        return "redirect:/admin/produtos";
-    }
-
     // cria produtos em lote a partir de uma planilha de estoque (quantidade, nome tecnico, categoria e marca).
     // eles entram ocultos do site (sem preco/foto ainda) ate o admin completar o cadastro de cada um.
     @PostMapping("/produtos/importar")
@@ -332,10 +303,9 @@ public class AdminController {
     private void popularModeloPromocoes(Model model) {
         List<Promocao> promocoes = promocaoRepository.findAll();
 
-        // so oferece para selecionar produtos que estao ativos e com estoque disponivel
+        // so oferece para selecionar produtos que estao ativos
         List<Produto> produtosDisponiveis = produtoRepository.findAll().stream()
                 .filter(Produto::isAtivo)
-                .filter(p -> p.getQuantidadeEstoque() != null && p.getQuantidadeEstoque() > 0)
                 .collect(Collectors.toList());
 
         // nomes dos produtos vinculados a cada promocao, para exibir na tabela de listagem
